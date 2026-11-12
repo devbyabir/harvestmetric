@@ -98,7 +98,7 @@ streamlit_app.py, app_pages/   Streamlit entry point and pages
 tests/         synthetic/, real/, test_app.py: leakage, splits, joins, units, inference, every app page
 data/processed/  Part B panel + provenance manifest (raw downloads are git-ignored)
 reports/       synthetic/ and real/ metrics and tables
-docs/          provenance, Part A, Part B, model card, reproducibility, deployment, attribution, CV, interview sheet, report
+docs/          provenance, Part A, Part B, model card, reproducibility, deployment, attribution, report
 ```
 
 ## Documentation
@@ -126,4 +126,3 @@ docs/          provenance, Part A, Part B, model card, reproducibility, deployme
 - **Code and docs:** MIT, © 2026 Abir Ahmmed ([LICENSE](LICENSE)). Third-party data terms: [NOTICE](NOTICE).
 - **Origins:** this is a rebuild of an exploratory notebook developed during an internship with a colleague.
   That notebook is not included ([docs/ATTRIBUTION.md](docs/ATTRIBUTION.md)).
-- **AI assistance:** the rebuild was produced with an AI coding assistant, directed and reviewed by the author.

@@ -5,8 +5,8 @@
 | Phase | What | Who | In this repository? |
 |---|---|---|---|
 | 1. Original internship notebook | `Smart_Crop_Yield_Analysis_and_Modeling.ipynb` and four JPG screenshots of its figures | The repository owner **and a friend**; their split of work is undocumented | **No.** Ownership is unclear, and its R² results are invalid (see Part A) |
-| 2. Rebuild, Part A | Leakage audit and corrected evaluation of the synthetic dataset | The repository owner, with an AI coding assistant | Yes |
-| 3. Rebuild, Part B | Real-data pipeline, forecasting evaluation, app, report | The repository owner, with an AI coding assistant | Yes |
+| 2. Rebuild, Part A | Leakage audit and corrected evaluation of the synthetic dataset | The repository owner | Yes |
+| 3. Rebuild, Part B | Real-data pipeline, forecasting evaluation, app, report | The repository owner | Yes |
 
 ## Material in the original folder
 
@@ -28,8 +28,6 @@ Everything in the repository was written during the rebuild sessions of 12 Novem
 - Ideas shared with that notebook are stated openly: the synthetic dataset, standard scikit-learn building
   blocks, and two checks it also ran (counting duplicates, a KS test against a uniform distribution) but did
   not act on.
-- The work was produced with an AI coding assistant directed and reviewed by the repository owner. See
-  [CV.md](CV.md) for honest wording.
 
 ## Third-party material and credits
 

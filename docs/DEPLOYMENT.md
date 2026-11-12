@@ -22,7 +22,7 @@ should happen only after you have reviewed and merged the pull request.
 4. Repository `devbyabir/harvestmetric`, branch `main`, main file `streamlit_app.py`. Under **Advanced
    settings**, choose **Python 3.12** (or 3.13).
 5. Deploy. Open every page in the sidebar and check that none shows an error.
-6. Then add the real URL to the README and to [CV.md](CV.md).
+6. Then add the real URL to the README.
 
 ## Expected behaviour
 - The forecast page is **not** shown, because Part B's gate did not pass.
