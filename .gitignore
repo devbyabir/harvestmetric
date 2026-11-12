@@ -28,3 +28,6 @@ data/raw/**
 # Part A row-level outputs that reproduce third-party dataset records
 reports/synthetic/tables/test_predictions.csv
 reports/synthetic/tables/test_worst_errors.csv
+
+# Personal notes (CV wording, interview prep): kept local, never published
+private/

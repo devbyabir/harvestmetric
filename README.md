@@ -1,5 +1,8 @@
 # HarvestMetric — Crop Yield Analytics
 
+[![Live demo](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://harvestmetric.streamlit.app)
+[![Tests](https://github.com/devbyabir/harvestmetric/actions/workflows/tests.yml/badge.svg)](https://github.com/devbyabir/harvestmetric/actions/workflows/tests.yml)
+
 **Leakage-safe evaluation of crop-yield models, in two parts.**
 
 - **Part A, a case study:** an internship notebook reported **R² ≈ 1.00**. That score came from duplicated
@@ -12,7 +15,7 @@
   live forecasts are published.
 
 📄 **Technical report (4 pages):** [docs/report/HarvestMetric_technical_report.pdf](docs/report/HarvestMetric_technical_report.pdf)
-· 🧭 Interactive app: run locally (below); not deployed yet
+· 🧭 **Live demo:** https://harvestmetric.streamlit.app (if the app has been idle it may take about a minute to wake up)
 
 ![Overview](docs/screenshots/01_overview.png)
 
@@ -98,7 +101,7 @@ streamlit_app.py, app_pages/   Streamlit entry point and pages
 tests/         synthetic/, real/, test_app.py: leakage, splits, joins, units, inference, every app page
 data/processed/  Part B panel + provenance manifest (raw downloads are git-ignored)
 reports/       synthetic/ and real/ metrics and tables
-docs/          provenance, Part A, Part B, model card, reproducibility, deployment, attribution, CV, interview sheet, report
+docs/          provenance, Part A, Part B, model card, reproducibility, deployment, attribution, report
 ```
 
 ## Documentation
@@ -126,4 +129,3 @@ docs/          provenance, Part A, Part B, model card, reproducibility, deployme
 - **Code and docs:** MIT, © 2026 Abir Ahmmed ([LICENSE](LICENSE)). Third-party data terms: [NOTICE](NOTICE).
 - **Origins:** this is a rebuild of an exploratory notebook developed during an internship with a colleague.
   That notebook is not included ([docs/ATTRIBUTION.md](docs/ATTRIBUTION.md)).
-- **AI assistance:** the rebuild was produced with an AI coding assistant, directed and reviewed by the author.

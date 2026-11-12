@@ -1,7 +1,7 @@
 # Deploying to Streamlit Community Cloud
 
-**Status: not deployed.** No live URL exists. Deploying needs your Streamlit account and your decision, and
-should happen only after you have reviewed and merged the pull request.
+**Status: deployed** at https://harvestmetric.streamlit.app from `main` (Python 3.12, `streamlit_app.py`).
+Every push to `main` redeploys it. All 8 pages were checked on the live app with no errors.
 
 ## Already in place
 - **Entry point:** `streamlit_app.py` at the repository root, with pages in `app_pages/` and their code in
@@ -16,13 +16,12 @@ should happen only after you have reviewed and merged the pull request.
 
 ## Steps (your accounts)
 1. Review and merge the pull request into `main` on https://github.com/devbyabir/harvestmetric.
-2. The repository is private. Streamlit Community Cloud can deploy private repositories once you authorise
-   its GitHub app for them; making the repository public is a separate decision.
+2. The repository is public, so Streamlit needs access to public repositories only.
 3. Go to https://share.streamlit.io, sign in with GitHub, and click **Create app**.
 4. Repository `devbyabir/harvestmetric`, branch `main`, main file `streamlit_app.py`. Under **Advanced
    settings**, choose **Python 3.12** (or 3.13).
 5. Deploy. Open every page in the sidebar and check that none shows an error.
-6. Then add the real URL to the README and to [CV.md](CV.md).
+6. Then add the real URL to the README.
 
 ## Expected behaviour
 - The forecast page is **not** shown, because Part B's gate did not pass.
