@@ -5,12 +5,29 @@ import pytest
 from harvestmetric.real import config
 from harvestmetric.real.conformal import conformal_quantile, coverage, intervals
 from harvestmetric.real.forecast import ForecastInputError, forecast_rows
-from harvestmetric.real.models import (HistoricalMeanBaseline, PreviousYearBaseline, TrendBaseline,
-                                       TrendDeviationRegressor, candidates)
-from harvestmetric.real.prepare import (PanelError, build_panel, gdd_corn, history_features, load_weather,
-                                        load_yields, weather_features)
-from harvestmetric.real.splits import (SplitLeakageError, assert_time_order, district_folds,
-                                       expanding_window_folds, time_split)
+from harvestmetric.real.models import (
+    HistoricalMeanBaseline,
+    PreviousYearBaseline,
+    TrendBaseline,
+    TrendDeviationRegressor,
+    candidates,
+)
+from harvestmetric.real.prepare import (
+    PanelError,
+    build_panel,
+    gdd_corn,
+    history_features,
+    load_weather,
+    load_yields,
+    weather_features,
+)
+from harvestmetric.real.splits import (
+    SplitLeakageError,
+    assert_time_order,
+    district_folds,
+    expanding_window_folds,
+    time_split,
+)
 from harvestmetric.real.train import year_bootstrap_rmse_gain
 
 # ------------------------------------------------------------------ yields / units / missing data

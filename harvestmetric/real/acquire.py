@@ -24,8 +24,7 @@ import time
 import urllib.parse
 import urllib.request
 import zipfile
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -45,7 +44,7 @@ def _sha256(data: bytes) -> str:
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def fetch_nass() -> dict:
@@ -105,10 +104,13 @@ def main() -> None:
     parser.add_argument("--skip-weather", action="store_true", help="only NASS + Gazetteer")
     args = parser.parse_args()
     manifest = json.loads(config.MANIFEST_PATH.read_text()) if config.MANIFEST_PATH.exists() else {}
-    print("NASS Quick Stats ..."); manifest["nass"] = fetch_nass()
-    print("Census Gazetteer ..."); manifest["gazetteer"] = fetch_gazetteer()
+    print("NASS Quick Stats ...")
+    manifest["nass"] = fetch_nass()
+    print("Census Gazetteer ...")
+    manifest["gazetteer"] = fetch_gazetteer()
     if not args.skip_weather:
-        print("NASA POWER (99 points, cached per county) ..."); manifest["power"] = fetch_power()
+        print("NASA POWER (99 points, cached per county) ...")
+        manifest["power"] = fetch_power()
     config.PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     config.MANIFEST_PATH.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Wrote {config.MANIFEST_PATH.relative_to(config.PROJECT_ROOT)}")

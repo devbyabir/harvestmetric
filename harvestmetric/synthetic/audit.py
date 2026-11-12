@@ -1,13 +1,13 @@
-"""Data-quality and plausibility audit. Run: python -m harvestmetric.audit"""
+"""Data-quality and plausibility audit. Run: python -m harvestmetric.synthetic.audit"""
 
 from __future__ import annotations
 
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 
 import numpy as np
-import pandas as pd
 from scipy import stats
 
 from . import config
@@ -35,7 +35,7 @@ def run_audit(path: str | Path | None = None) -> dict:
 
     # Duplicate structure
     copies = raw.groupby(list(raw.columns)).size()
-    dup = {
+    dup: dict[str, Any] = {
         "raw_rows": report.raw_rows,
         "unique_rows": report.unique_rows,
         "copies_per_unique_row": sorted(copies.unique().tolist()),
@@ -46,7 +46,7 @@ def run_audit(path: str | Path | None = None) -> dict:
     }
 
     # Geography: share of farms whose coordinates fall inside their region's box
-    geo = {}
+    geo: dict[str, Any] = {}
     for region, box in REGION_BOXES.items():
         g = df[df.region == region]
         inside = g.latitude.between(*box["lat"]) & g.longitude.between(*box["lon"])
@@ -58,7 +58,7 @@ def run_audit(path: str | Path | None = None) -> dict:
         }
 
     # Dates
-    dates = {
+    dates: dict[str, Any] = {
         "sowing_range": [str(df.sowing_date.min().date()), str(df.sowing_date.max().date())],
         "harvest_range": [str(df.harvest_date.min().date()), str(df.harvest_date.max().date())],
         "years_present": sorted(df.sowing_date.dt.year.unique().tolist()),

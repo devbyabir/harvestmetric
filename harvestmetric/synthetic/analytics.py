@@ -30,14 +30,14 @@ class Comparison:
 def compare_groups(a: pd.Series, b: pd.Series, label_a: str = "A", label_b: str = "B",
                    n_boot: int = 4000, seed: int = config.RANDOM_STATE) -> Comparison:
     """Difference in mean yield with a percentile bootstrap 95% interval."""
-    a, b = np.asarray(a, float), np.asarray(b, float)
-    if len(a) < 2 or len(b) < 2:
+    xa, xb = np.asarray(a, float), np.asarray(b, float)
+    if len(xa) < 2 or len(xb) < 2:
         raise ValueError("Each group needs at least 2 farms for a comparison.")
     rng = np.random.default_rng(seed)
-    diffs = (rng.choice(a, (n_boot, len(a))).mean(1) - rng.choice(b, (n_boot, len(b))).mean(1))
+    diffs = (rng.choice(xa, (n_boot, len(xa))).mean(1) - rng.choice(xb, (n_boot, len(xb))).mean(1))
     lo, hi = np.quantile(diffs, [0.025, 0.975])
-    return Comparison(label_a, label_b, len(a), len(b), float(a.mean()), float(b.mean()),
-                      float(a.mean() - b.mean()), float(lo), float(hi))
+    return Comparison(label_a, label_b, len(xa), len(xb), float(xa.mean()), float(xb.mean()),
+                      float(xa.mean() - xb.mean()), float(lo), float(hi))
 
 
 SCENARIOS = {

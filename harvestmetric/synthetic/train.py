@@ -1,4 +1,4 @@
-"""End-to-end training and evaluation. Run: python -m harvestmetric.train
+"""End-to-end training and evaluation. Run: python -m harvestmetric.synthetic.train
 
 Protocol
 1. Load the CSV, drop exact duplicate rows (one row per farm remains).
@@ -17,8 +17,9 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import joblib
 import numpy as np
@@ -26,17 +27,22 @@ import pandas as pd
 import sklearn
 from sklearn.base import clone
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import (GridSearchCV, KFold, StratifiedGroupKFold,
-                                     cross_val_score, cross_validate, permutation_test_score)
+from sklearn.model_selection import (
+    GridSearchCV,
+    KFold,
+    StratifiedGroupKFold,
+    cross_val_score,
+    cross_validate,
+    permutation_test_score,
+)
 from sklearn.pipeline import Pipeline
 
-from . import config
-from .data import load_dataset, read_raw, prepare
 from ..metrics import bootstrap_ci, breakdown, paired_bootstrap_improvement, regression_metrics
+from . import config
+from .data import load_dataset, prepare, read_raw
 from .features import AT_SOWING, FEATURE_SETS, FULL_SEASON, build_preprocessor
 from .models import candidate_models
 from .split import group_holdout_split
-
 
 
 def yield_band(y: pd.Series) -> pd.Series:
@@ -130,8 +136,8 @@ def run(path=None, n_permutations: int = 200) -> dict:
     train_idx, test_idx = group_holdout_split(df)
     train, test = df.iloc[train_idx].reset_index(drop=True), df.iloc[test_idx].reset_index(drop=True)
 
-    out = {
-        "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    out: dict[str, Any] = {
+        "generated_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "versions": {"scikit-learn": sklearn.__version__, "pandas": pd.__version__, "numpy": np.__version__},
         "data": {"source_file": Path(load_report.path).name,
                  "raw_rows": load_report.raw_rows, "unique_rows": load_report.unique_rows,

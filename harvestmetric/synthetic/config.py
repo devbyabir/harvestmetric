@@ -5,7 +5,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from ..paths import ARTIFACTS_DIR as _ARTIFACTS, DATA_DIR as _DATA, PROJECT_ROOT, REPORTS_DIR as _REPORTS
+from ..paths import ARTIFACTS_DIR as _ARTIFACTS
+from ..paths import DATA_DIR as _DATA
+from ..paths import PROJECT_ROOT
+from ..paths import REPORTS_DIR as _REPORTS
 
 DATA_DIR = _DATA / "raw" / "synthetic"
 REPORTS_DIR = _REPORTS / "synthetic"

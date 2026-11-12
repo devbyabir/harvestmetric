@@ -20,9 +20,9 @@ def power_payload(lat: float, years=range(1981, 1987), seed: int = 0) -> dict:
     prcp = rng.gamma(0.5, 5, len(days))
     fmt = days.strftime("%Y%m%d")
     return {"header": {"api": {"version": "test"}, "fill_value": -999.0},
-            "properties": {"parameter": {"T2M_MAX": dict(zip(fmt, tmax.round(2))),
-                                         "T2M_MIN": dict(zip(fmt, tmin.round(2))),
-                                         "PRECTOTCORR": dict(zip(fmt, prcp.round(2)))}}}
+            "properties": {"parameter": {"T2M_MAX": dict(zip(fmt, tmax.round(2), strict=True)),
+                                         "T2M_MIN": dict(zip(fmt, tmin.round(2), strict=True)),
+                                         "PRECTOTCORR": dict(zip(fmt, prcp.round(2), strict=True))}}}
 
 
 def nass_rows(fips_suffix: str, county: str, years, base: float, district="CENTRAL", code="50"):

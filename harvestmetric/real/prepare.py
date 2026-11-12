@@ -77,7 +77,7 @@ def gdd_corn(tmax: pd.Series, tmin: pd.Series) -> pd.Series:
 WEATHER_FEATURES = ["gdd_may_jul", "edd30_jun_jul", "prcp_apr_may", "prcp_jun", "prcp_jul", "tmax_jul"]
 
 
-def weather_features(daily: pd.DataFrame, year: int) -> dict[str, float]:
+def weather_features(daily: pd.DataFrame, year: int) -> dict[str, float | str]:
     """Season-to-date weather for `year`, using only days up to the forecast cut-off."""
     cutoff = pd.Timestamp(date(year, *config.FORECAST_MONTH_DAY)) - pd.Timedelta(days=1)  # 31 July
     d = daily.loc[f"{year}-04-01":cutoff]
@@ -85,7 +85,7 @@ def weather_features(daily: pd.DataFrame, year: int) -> dict[str, float]:
         raise PanelError(f"weather window for {year} is empty or extends past the forecast date")
     if d[["tmax", "tmin", "prcp"]].isna().mean().max() > 0.02:
         raise PanelError(f"more than 2% missing weather days in {year}")
-    month = d.index.month
+    month = pd.DatetimeIndex(d.index).month
     gdd = gdd_corn(d.tmax, d.tmin)
     return {
         "gdd_may_jul": float(gdd[(month >= 5) & (month <= 7)].sum()),
@@ -132,16 +132,16 @@ def build_panel() -> pd.DataFrame:
     names = yields.groupby("fips").agg(county=("county", "last"),
                                        district_code=("district_code", lambda s: s.mode().iat[0]),
                                        district=("district", lambda s: s.mode().iat[0]))
-    rows = []
+    rows: list[dict[str, object]] = []
     for fips, meta in names.iterrows():
         series = yields[yields.fips == fips].set_index("year")[config.TARGET]
         cvs = yields[yields.fips == fips].set_index("year")["nass_cv_pct"]
-        daily = load_weather(fips)
+        daily = load_weather(str(fips))
         for year in range(config.FIRST_MODEL_YEAR, config.FORECAST_YEAR + 1):
             hist = history_features(series, year)
             if np.isnan(hist["trend_pred"]):
                 continue
-            rows.append({"fips": fips, **meta.to_dict(), "year": year,
+            rows.append({"fips": fips, **{str(k): v for k, v in meta.items()}, "year": year,
                          config.TARGET: series.get(year, np.nan), "nass_cv_pct": cvs.get(year, np.nan),
                          **hist, **weather_features(daily, year)})
     panel = pd.DataFrame(rows).merge(centroids[["fips", "lat", "lon"]], on="fips", how="left")

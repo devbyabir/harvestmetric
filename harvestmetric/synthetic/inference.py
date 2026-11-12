@@ -6,8 +6,9 @@ transformations applied here are exactly those fitted during training.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import joblib
 import pandas as pd
@@ -28,10 +29,10 @@ def validate_input(record: Mapping[str, Any]) -> dict[str, Any]:
     if missing:
         raise InputError(f"Missing required field(s): {', '.join(missing)}")
     for col in AT_SOWING.categorical:
-        value = str(record[col])
-        if value not in config.CATEGORIES[col]:
-            errors.append(f"{col} must be one of {config.CATEGORIES[col]} (got {value!r})")
-        clean[col] = value
+        text = str(record[col])
+        if text not in config.CATEGORIES[col]:
+            errors.append(f"{col} must be one of {config.CATEGORIES[col]} (got {text!r})")
+        clean[col] = text
     for col in AT_SOWING.numeric:
         try:
             value = float(record[col])
@@ -53,7 +54,7 @@ def validate_input(record: Mapping[str, Any]) -> dict[str, Any]:
 def load_artifact(path: str | Path = config.MODEL_PATH) -> dict:
     path = Path(path)
     if not path.exists():
-        raise FileNotFoundError(f"No trained model at {path}. Run: python -m harvestmetric.train")
+        raise FileNotFoundError(f"No trained model at {path}. Run: python -m harvestmetric.synthetic.train")
     artifact = joblib.load(path)
     if artifact.get("feature_set") != AT_SOWING.name:
         raise ValueError("Model artifact was trained on a different feature set")

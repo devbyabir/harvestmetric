@@ -59,7 +59,7 @@ def test_artifact_roundtrip(tmp_path, artifact, valid_record):
 
 
 def test_missing_artifact_message(tmp_path):
-    with pytest.raises(FileNotFoundError, match="harvestmetric.train"):
+    with pytest.raises(FileNotFoundError, match="harvestmetric.synthetic.train"):
         load_artifact(tmp_path / "none.joblib")
 
 

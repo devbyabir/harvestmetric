@@ -44,12 +44,12 @@ def paired_bootstrap_improvement(y_true, pred_model, pred_base, n_boot: int = 20
         rm = np.sqrt(np.mean((y[idx] - a[idx]) ** 2))
         rb = np.sqrt(np.mean((y[idx] - b[idx]) ** 2))
         diffs.append(rb - rm)
-    diffs = np.asarray(diffs)
+    d = np.asarray(diffs)
     return {
-        "rmse_reduction_mean": float(diffs.mean()),
-        "ci_low": float(np.quantile(diffs, 0.025)),
-        "ci_high": float(np.quantile(diffs, 0.975)),
-        "share_of_resamples_model_better": float((diffs > 0).mean()),
+        "rmse_reduction_mean": float(d.mean()),
+        "ci_low": float(np.quantile(d, 0.025)),
+        "ci_high": float(np.quantile(d, 0.975)),
+        "share_of_resamples_model_better": float((d > 0).mean()),
     }
 
 

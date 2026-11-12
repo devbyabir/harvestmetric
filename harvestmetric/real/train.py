@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import joblib
 import numpy as np
@@ -95,12 +95,13 @@ def run() -> dict:
         cv_mask[va] = True
     results, fitted, oof_best = {}, {}, {}
     for name, (est, grid) in cands.items():
-        best = None
+        best: tuple[dict, dict, np.ndarray] | None = None
         for params in grid:
             oof = cv_predict(clone(est).set_params(**params), train, folds)
             m = regression_metrics(train[config.TARGET][cv_mask], oof[cv_mask])
             if best is None or m["rmse"] < best[1]["rmse"]:
                 best = (params, m, oof)
+        assert best is not None
         params, cv_m, oof = best
         model = clone(est).set_params(**params).fit(train, train[config.TARGET])
         pred = model.predict(test)
@@ -209,7 +210,7 @@ def run() -> dict:
             future[f"lo{int(lvl*100)}"], future[f"hi{int(lvl*100)}"] = future.forecast - q, future.forecast + q
 
     out = {
-        "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "versions": {"scikit-learn": sklearn.__version__, "pandas": pd.__version__, "numpy": np.__version__},
         "random_state": config.RANDOM_STATE,
         "task": {"unit": "Iowa county x year", "target": "NASS corn-for-grain yield, bu/acre",
@@ -233,7 +234,7 @@ def run() -> dict:
         "rolling_origin_refit": {"years": [config.TEST_START, config.LAST_YIELD_YEAR],
                                  "design": "refit every year on all earlier years, same hyperparameters",
                                  "model": roll_m, "trend": roll_trend, "vs_trend_year_bootstrap": roll_vs_trend},
-        "forecast_2026": ({"counties": int(len(future)),
+        "forecast_2026": ({"counties": int(len(future)) if future is not None else 0,
                            "interval_half_widths": {f"{int(k*100)}%": v for k, v in prod_q.items()},
                            "calibration": "rolling-origin residuals 2012-2025"} if gate else
                           {"produced": False, "reason": "prediction gate not passed"}),

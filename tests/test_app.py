@@ -46,7 +46,7 @@ def test_forecast_page_only_when_gate_passed():
     supported = metrics["selection"]["prediction_supported"]
     if not supported:
         assert not (REPORTS_DIR / "real" / "tables" / "forecast_2026.csv").exists()
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             at.switch_page("app_pages/forecasts.py").run()
 
 

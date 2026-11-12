@@ -8,6 +8,7 @@ data location with environment variables).
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -36,7 +37,6 @@ def refresh() -> None:
     real_metrics = app_data.read_json("real", "metrics.json")
     panel = app_data.read_panel()
     real_supported = bool(real_metrics and real_metrics["selection"]["prediction_supported"])
-NO_ARROW = {"delta_color": "off", "delta_arrow": "off"}
 
 
 def badge(part: str) -> None:
@@ -75,9 +75,9 @@ def overview() -> None:
             sel = syn_metrics["selection"]
             best = syn_metrics["results"]["at_sowing"][sel["selected_model"]]["test"]["r2"]
             st.metric("Original notebook R² (row-level split)", f"{legacy['row_level_kfold_r2']:.3f}",
-                      "invalid: copies in train and test", **NO_ARROW)
+                      "invalid: copies in train and test", delta_color="off", delta_arrow="off")
             st.metric("Same model, split by farm", f"{legacy['grouped_by_farm_kfold_r2']:+.2f}",
-                      f"best tuned model on held-out farms: R² {best:+.3f}", **NO_ARROW)
+                      f"best tuned model on held-out farms: R² {best:+.3f}", delta_color="off", delta_arrow="off")
         else:
             missing("The Part A report")
     with b:
@@ -89,11 +89,11 @@ def overview() -> None:
             gain = sel["vs_baselines_year_bootstrap"]["County trend"]
             st.metric("Test RMSE 2012–2025 (bu/ac)", f"{m['rmse']:.1f}",
                       f"county-trend baseline {t['rmse']:.1f} · {100 * (1 - m['rmse'] / t['rmse']):.0f}% lower",
-                      **NO_ARROW)
+                      delta_color="off", delta_arrow="off")
             st.metric("Gain over trend, 95% CI (years resampled)",
                       f"{gain['ci_low']:+.1f} … {gain['ci_high']:+.1f}",
                       "not reliably above 0 → forecasts not enabled" if not real_supported else "above 0",
-                      **NO_ARROW)
+                      delta_color="off", delta_arrow="off")
         else:
             missing("The Part B report")
 
@@ -209,13 +209,6 @@ def simulator() -> None:
         st.success("No material gap: without duplicates, row-level and grouped splits agree.")
 
 
-def _need_panel() -> bool:
-    if panel is None:
-        missing("The Part B panel (data/processed/iowa_corn_county_panel.csv)")
-        return False
-    return True
-
-
 def _pick(options: list[str], preferred: str) -> int:
     return options.index(preferred) if preferred in options else 0
 
@@ -224,7 +217,8 @@ def explore_real() -> None:
     refresh()
     badge("b")
     st.header("Explore Iowa county corn yields and weather")
-    if not _need_panel():
+    if panel is None:
+        missing("The Part B panel (data/processed/iowa_corn_county_panel.csv)")
         return
     obs = panel[panel[rcfg.TARGET].notna()].copy()
     obs["dev_pct"] = 100 * (obs[rcfg.TARGET] - obs.trend_pred) / obs.trend_pred
@@ -265,12 +259,12 @@ def explore_real() -> None:
     fig.update_yaxes(title="bu/acre")
     st.plotly_chart(fig_layout(fig, 340, "Yield over time"))
 
-    labels = {"edd30_jun_jul": "Extreme heat: Jun–Jul degree-days above 30 °C",
+    labels: dict[str, str] = {"edd30_jun_jul": "Extreme heat: Jun–Jul degree-days above 30 °C",
               "gdd_may_jul": "Growing degree-days May–Jul", "prcp_jun": "June rainfall (mm)",
               "prcp_jul": "July rainfall (mm)", "prcp_apr_may": "Apr–May rainfall (mm)",
               "tmax_jul": "Mean July max temperature (°C)"}
-    x = st.selectbox("Weather variable (season to 31 July)", list(labels), format_func=labels.get)
-    r = obs[[x, "dev_pct"]].corr().iloc[0, 1]
+    x: str = st.selectbox("Weather variable (season to 31 July)", list(labels), format_func=lambda k: labels[k])
+    r = float(np.corrcoef(obs[x], obs["dev_pct"])[0, 1])
     period = np.where(obs.year >= rcfg.TEST_START, "2012–2025", "1981–2011")
     fig = px.scatter(obs.assign(period=period), x=x, y="dev_pct", color="period", opacity=0.35,
                      labels={x: labels[x], "dev_pct": "Yield deviation from trend (%)"},
@@ -294,15 +288,17 @@ def evaluation_real() -> None:
              "Test RMSE": r["test"]["rmse"], "Test R²": r["test"]["r2"],
              "Tuned": json.dumps(r["params"]) if r["params"] else "—"} for n, r in real_metrics["results"].items()]
     st.markdown("**1 · Time-based test** (bu/acre; CV = expanding-window validation inside 1981–2011)")
-    fmt = {c: "{:.2f}" for c in ["CV RMSE", "Test MAE", "Test RMSE"]} | {"CV R²": "{:+.3f}", "Test R²": "{:+.3f}"}
+    fmt: dict[Any, Any] = {c: "{:.2f}" for c in ["CV RMSE", "Test MAE", "Test RMSE"]}
+    fmt |= {"CV R²": "{:+.3f}", "Test R²": "{:+.3f}"}
     st.dataframe(pd.DataFrame(rows).style.format(fmt), hide_index=True)
     vs = pd.DataFrame([{"Baseline": b, "RMSE gain (bu/ac)": v["rmse_gain"], "95% CI low": v["ci_low"],
                         "95% CI high": v["ci_high"], "Share of resamples better": v["share_resamples_better"]}
                        for b, v in sel["vs_baselines_year_bootstrap"].items()])
     st.markdown(f"**Selected by CV: {sel['selected_model']}.** Gain over each baseline on the test years "
                 "(bootstrap resampling whole years, since counties in one season share its weather):")
-    st.dataframe(vs.style.format({c: "{:+.2f}" for c in ["RMSE gain (bu/ac)", "95% CI low", "95% CI high"]}
-                                 | {"Share of resamples better": "{:.1%}"}), hide_index=True)
+    vs_fmt: dict[Any, Any] = {c: "{:+.2f}" for c in ["RMSE gain (bu/ac)", "95% CI low", "95% CI high"]}
+    vs_fmt["Share of resamples better"] = "{:.1%}"
+    st.dataframe(vs.style.format(vs_fmt), hide_index=True)
     res = real_metrics["results"]
     st.markdown(f"**Forecast gate: {'passed' if real_supported else 'not passed'}.** Rule fixed before testing: "
                 f"{sel['gate']}. In CV the selected model's RMSE ({res[sel['selected_model']]['cv']['rmse']:.2f}) "
@@ -320,9 +316,9 @@ def evaluation_real() -> None:
         iv = real_metrics["intervals"]
         c1, c2 = st.columns(2)
         c1.metric("80% interval: coverage on test", f"{iv['80%']['test_coverage']:.1%}",
-                  f"± {iv['80%']['half_width_bu_ac']:.1f} bu/ac", **NO_ARROW)
+                  f"± {iv['80%']['half_width_bu_ac']:.1f} bu/ac", delta_color="off", delta_arrow="off")
         c2.metric("90% interval: coverage on test", f"{iv['90%']['test_coverage']:.1%}",
-                  f"± {iv['90%']['half_width_bu_ac']:.1f} bu/ac", **NO_ARROW)
+                  f"± {iv['90%']['half_width_bu_ac']:.1f} bu/ac", delta_color="off", delta_arrow="off")
         fig = go.Figure()
         fig.add_scatter(x=by_year.year, y=by_year.in80, name="80% interval", mode="lines+markers",
                         line=dict(color=GREEN))
@@ -380,10 +376,12 @@ def errors_real() -> None:
     st.caption("Bias = forecast − actual. Positive bias means the forecast was too high.")
     st.markdown("""
 **Known failure modes**
-- **2012 drought:** the model cut the trend baseline's over-forecast from about +46 to +15 bu/ac but still over-forecast.
+- **2012 drought:** the model cut the trend baseline's over-forecast from about +46 to +15 bu/ac,
+  but still over-forecast.
 - **2020:** the 10 August derecho flattened central-Iowa corn *after* the forecast date. No information
   available on 1 August could anticipate it, so errors were large.
-- **Unpublished counties:** NASS did not publish every county after 2014. Those county-years have no target and are not scored.
+- **Unpublished counties:** NASS did not publish every county after 2014. Those county-years have
+  no target and are not scored.
     """)
     err = tp[pc] - tp[rcfg.TARGET]
     worst = tp.assign(err=err).loc[err.abs().sort_values(ascending=False).index]
@@ -413,7 +411,8 @@ def scenarios_real() -> None:
     refresh()
     badge("b")
     st.header("Scenarios: how did yields respond to season conditions?")
-    if not _need_panel():
+    if panel is None:
+        missing("The Part B panel (data/processed/iowa_corn_county_panel.csv)")
         return
     from .real.analysis import compare_by_year_bootstrap, with_deviation
     d = with_deviation(panel)
@@ -444,9 +443,10 @@ def scenarios_real() -> None:
         return
     m1, m2, m3 = st.columns(3)
     m1.metric(f"Group ({side} P{int(round(q * 100))})", f"{c.mean_a:+.1f}%",
-              f"{c.n_a} county-years, {c.years_a} seasons", **NO_ARROW)
-    m2.metric("Rest", f"{c.mean_b:+.1f}%", f"{c.n_b} county-years", **NO_ARROW)
-    m3.metric("Difference", f"{c.diff:+.1f} pts", f"95% CI {c.ci_low:+.1f} … {c.ci_high:+.1f}", **NO_ARROW)
+              f"{c.n_a} county-years, {c.years_a} seasons", delta_color="off", delta_arrow="off")
+    m2.metric("Rest", f"{c.mean_b:+.1f}%", f"{c.n_b} county-years", delta_color="off", delta_arrow="off")
+    m3.metric("Difference", f"{c.diff:+.1f} pts", f"95% CI {c.ci_low:+.1f} … {c.ci_high:+.1f}",
+              delta_color="off", delta_arrow="off")
     if c.conclusive:
         st.success("The interval excludes zero for this historical comparison.")
     else:

@@ -1,7 +1,10 @@
 """Check whether two copies of the dataset contain the same records.
 
 Usage:
-    python -m harvestmetric.provenance data/raw/Smart_Farming_Crop_Yield_2024.csv final_dataset_crop_yield.csv
+    python -m harvestmetric.synthetic.provenance OFFICIAL.csv OTHER.csv
+
+Example: OFFICIAL = data/raw/synthetic/Smart_Farming_Crop_Yield_2024.csv and
+OTHER = final_dataset_crop_yield.csv (the original working copy).
 
 Both files are de-duplicated and their dates normalised before comparison, so
 a 10x duplicated copy or a different date format still counts as a match.
@@ -10,6 +13,7 @@ a 10x duplicated copy or a different date format still counts as a match.
 from __future__ import annotations
 
 import sys
+from typing import Any
 
 import pandas as pd
 
@@ -29,7 +33,7 @@ def normalised(path) -> pd.DataFrame:
 def compare(path_a, path_b) -> dict:
     a, b = normalised(path_a), normalised(path_b)
     same_cols = list(a.columns) == list(b.columns)
-    result = {"rows_a": len(a), "rows_b": len(b), "same_columns": same_cols}
+    result: dict[str, Any] = {"rows_a": len(a), "rows_b": len(b), "same_columns": same_cols}
     if same_cols and len(a) == len(b):
         diff = (a != b).sum()
         result["cells_differing"] = int(diff.sum())

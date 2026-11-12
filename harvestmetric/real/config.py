@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from ..paths import ARTIFACTS_DIR as _ARTIFACTS, DATA_DIR as _DATA, PROJECT_ROOT, REPORTS_DIR as _REPORTS
+from ..paths import ARTIFACTS_DIR as _ARTIFACTS
+from ..paths import DATA_DIR as _DATA
+from ..paths import PROJECT_ROOT
+from ..paths import REPORTS_DIR as _REPORTS
 
 __all__ = ["PROJECT_ROOT"]
 
