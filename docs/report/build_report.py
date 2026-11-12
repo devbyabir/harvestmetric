@@ -96,7 +96,7 @@ def figures(syn, real, t) -> None:
     ax[0].axhline(0.9, color=GOLD, ls=":", lw=1)
     ax[0].set_ylim(0.6, 1.02)
     ax[0].set_ylabel("Share of counties covered")
-    ax[0].set_title("(a) Conformal coverage by test year")
+    ax[0].set_title("(a) Interval coverage by test year")
     ax[0].legend(fontsize=6.5, frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=2)
     ax[0].set_xticks(range(2012, 2026, 2))
     y = range(len(geo))
@@ -104,7 +104,7 @@ def figures(syn, real, t) -> None:
     ax[1].barh([i - 0.2 for i in y], geo.model_rmse, 0.4, color=GREEN, label=sel)
     ax[1].set_yticks(list(y), [d.title() for d in geo.held_out_district], fontsize=7)
     ax[1].set_xlabel("RMSE (bu/acre), held-out district")
-    ax[1].set_title("(b) Geographic check, 1981–2011")
+    ax[1].set_title("(b) Held-out districts (tuned in-fold)")
     ax[1].legend(fontsize=6.5, frameon=False, loc="upper center", bbox_to_anchor=(0.45, -0.22), ncol=2)
     fig.savefig(FIG / "fig3_intervals_geo.png")
     plt.close(fig)
@@ -169,7 +169,8 @@ yields and season-to-date weather. On untouched test years 2012–2025, gradient
 deviations lowered RMSE from {tr['test']['rmse']:.1f} to {m['test']['rmse']:.1f} bu/acre against a
 county-trend baseline. However, the gain's year-resampled 95% interval reaches zero
 ({ci(vs['County trend']['ci_low'], vs['County trend']['ci_high'])}), and in training-period
-cross-validation the model did not beat the baseline. By a rule fixed before testing, the result is reported
+cross-validation the model did not beat the baseline. Under an acceptance rule set in the code before the test
+scores were computed (not independently preregistered), the result is reported
 as promising but not established, and no live forecasts are published.</div>
 
 <h2>1 Research questions</h2>
@@ -227,12 +228,18 @@ each fitted only on earlier years). Selection used CV RMSE.</li>
 <li><b>Baselines:</b> the county's 30-year mean, its previous-year yield, and its 30-year linear trend.</li>
 <li><b>Models:</b> Ridge and histogram gradient boosting, both predicting the deviation from the county trend.
 Ridge captures linear weather effects; boosting allows heat and drought thresholds.</li>
-<li><b>Uncertainty:</b> split-conformal 80%/90% intervals calibrated on the time-ordered CV residuals. Gains are
+<li><b>Uncertainty:</b> empirical 80%/90% intervals, ± an upper quantile of the selected model's time-ordered
+CV residuals. Those residuals also drove model selection and are correlated within seasons, so these are
+not split-conformal intervals and carry no coverage guarantee; coverage is checked on the test years. Gains are
 tested with a bootstrap that resamples whole <i>years</i>, because one season's weather shock hits all
 counties at once.</li>
-<li><b>Pre-registered gate:</b> forecasts are published only if the model beats the best baseline in CV
+<li><b>Acceptance gate</b> (written into the code before the test scores were computed, by the author's
+account; not an independently dated preregistration): forecasts are published only if the model beats the
+best baseline in CV
 <i>and</i> its test RMSE gain over the strongest baseline has a 95% interval above zero.</li>
-<li><b>Geographic check (separate):</b> leave one of NASS's nine crop-reporting districts out, within 1981–2011.</li>
+<li><b>Geographic check (separate):</b> leave one of NASS's nine crop-reporting districts out, within 1981–2011.
+Model family and hyperparameters are re-selected inside each fold by the same expanding-window CV on the
+other eight districts.</li>
 </ul>
 
 <h2>6 Results</h2>
@@ -250,15 +257,16 @@ is positive in {100 * vs['County trend']['share_resamples_better']:.1f}% of year
 zero. In CV the model was <i>worse</i> than the trend ({m['cv']['rmse']:.1f} vs {tr['cv']['rmse']:.1f}). The early folds
 learned from only three disaster years (1983, 1988, 1993) and over-predicted heat losses in 1997, 1999 and
 2002, when yields were above trend despite high heat. The weather–yield relationship is not stable across
-eras, so the gate is <b>not passed</b>. Conformal intervals covered {iv['80%']['test_coverage']:.1%} (80%) and
+eras, so the gate is <b>not passed</b>. The empirical intervals covered {iv['80%']['test_coverage']:.1%} (80%) and
 {iv['90%']['test_coverage']:.1%} (90%) of test county-years overall (half-widths ±{iv['80%']['half_width_bu_ac']:.0f} and
 ±{iv['90%']['half_width_bu_ac']:.0f} bu/acre), but only {by.loc[2012, 'in80']:.0%} and {by.loc[2020, 'in80']:.0%}
-at 80% in 2012 and 2020. Exchangeability fails within a shock year. In the geographic check the model
+at 80% in 2012 and 2020. Errors within a shock year move together, and overall coverage above nominal is not
+a guarantee. In the geographic check, tuned inside each fold, the model
 beat the trend in {geo['districts_where_model_beats_trend']} of 9 held-out districts (RMSE {geo['model']['rmse']:.1f} vs
 {geo['trend']['rmse']:.1f}). The same seasons appear on both sides there, so this shows spatial transfer, not
 skill on new seasons.</p>
 <figure><img src="figures/fig3_intervals_geo.png"><figcaption><b>Figure 3.</b> (a) Interval coverage collapses in
-shock years (2012 drought, 2020 derecho). (b) Leave-one-district-out RMSE.</figcaption></figure>
+shock years (2012 drought, 2020 derecho). (b) Leave-one-district-out RMSE, 1981–2011; model and hyperparameters re-tuned without the held-out district. Intervals are empirical, with no coverage guarantee.</figcaption></figure>
 
 <h2>7 Error analysis</h2>
 <ul>
@@ -283,7 +291,7 @@ satellite vegetation indices) were out of scope. Part A uses synthetic data and 
 <h2>9 Conclusion</h2>
 <p>The original R² ≈ 1.00 was leakage. On real data, a carefully time-separated evaluation finds that
 season-to-date weather <i>probably</i> improves 1 August county yield forecasts in drought years, but the
-evidence does not meet a pre-specified standard: CV across 1997–2011 disagrees, and the test gain is
+evidence does not meet the acceptance rule set in the code: CV across 1997–2011 disagrees, and the test gain is
 not reliably above zero. The contribution is a reproducible, leakage-tested pipeline that reports this
 honestly, rather than a headline accuracy number.</p>
 
@@ -293,7 +301,6 @@ produced by the author with the assistance of an AI coding assistant.</p>
 
 <h2>References</h2>
 <div class="ref">
-<p>Angelopoulos, A. N., &amp; Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. arXiv:2107.07511.</p>
 <p>Kaufman, S., Rosset, S., Perlich, C., &amp; Stitelman, O. (2012). Leakage in data mining: formulation, detection, and avoidance. <i>ACM TKDD</i>, 6(4), 15.</p>
 <p>Lobell, D. B., Roberts, M. J., Schlenker, W., et al. (2014). Greater sensitivity to drought accompanies maize yield increase in the U.S. Midwest. <i>Science</i>, 344(6183), 516–519.</p>
 <p>Roberts, D. R., Bahn, V., Ciuti, S., et al. (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. <i>Ecography</i>, 40(8), 913–929.</p>

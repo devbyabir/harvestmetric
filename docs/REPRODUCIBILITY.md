@@ -17,7 +17,7 @@
 | Part A evaluation | `python -m harvestmetric.synthetic.train` | `reports/synthetic/` | ~40 s |
 | Part B data | `python -m harvestmetric.real.acquire` | `data/raw/real/` (git-ignored), `data/processed/manifest.json` | ~3 min (99 POWER requests, cached) |
 | Part B panel | `python -m harvestmetric.real.prepare` | `data/processed/iowa_corn_county_panel.csv` | ~15 s |
-| Part B evaluation | `python -m harvestmetric.real.train` | `reports/real/`, `artifacts/real/` | ~10 s |
+| Part B evaluation | `python -m harvestmetric.real.train` | `reports/real/`, `artifacts/real/` | ~60 s (the geographic check re-tunes in each of 9 folds) |
 | Checks | `python -m ruff check . && python -m mypy && python -m pytest` | | ~1 min |
 | Report | `python docs/report/build_report.py` | `docs/report/*.pdf` | ~10 s |
 | App | `streamlit run streamlit_app.py` | http://localhost:8501 | |

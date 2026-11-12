@@ -1,6 +1,6 @@
 # Model card: HarvestMetric Iowa county corn forecast (Part B)
 
-**Status: evaluated, not validated for use.** The model did not pass its pre-registered gate, so no forecasts
+**Status: evaluated, not validated for use.** The model did not pass its acceptance gate, so no forecasts
 are published. This card documents it so the result can be checked and reproduced.
 
 ## Model
@@ -35,9 +35,12 @@ are published. This card documents it so the result can be checked and reproduce
 
 - **Gain over the trend:** +4.20 bu/ac RMSE, with a year-cluster bootstrap 95% CI of [−0.00, +9.46].
 - **Training-period CV:** RMSE 19.52, against 18.82 for the trend baseline. The model was worse in CV.
-- **80% / 90% conformal intervals:** test coverage 86.2% / 94.1%; per-year coverage as low as 68% / 80%.
-- **Geographic check:** leave-one-district-out within 1981–2011, RMSE 16.83 vs 22.80 (better in 9 of 9 districts).
-- **Pre-registered gate:** not passed.
+- **80% / 90% empirical CV-residual intervals:** test coverage 86.2% / 94.1%; per-year coverage as low as
+  68% / 80%. These are not split-conformal intervals: the calibration residuals were also used for model
+  selection, so there is no coverage guarantee.
+- **Geographic check:** leave-one-district-out within 1981–2011, with the model family and hyperparameters
+  re-tuned inside each fold on the other eight districts. RMSE 16.68 vs 22.80 (better in 9 of 9 districts).
+- **Acceptance gate:** not passed. The rule was written into the training script before the test scores were computed, by the author's account; this is not an independently dated preregistration.
 
 ## Known failure modes
 - **Drought years:** the forecast is still too high (2012 bias +14.7 bu/ac).

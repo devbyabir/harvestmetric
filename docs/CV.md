@@ -18,7 +18,7 @@ Add the repository link only once it is public, and a demo link only once it is 
 >   With farm-grouped validation the same model scored R² −0.21, and no model beat the mean.
 > - Built a reproducible pipeline on public USDA NASS county yields (99 Iowa counties) and NASA POWER
 >   weather to forecast corn yield on 1 August. It uses an untouched chronological test (2012–2025),
->   expanding-window tuning, three baselines and split-conformal prediction intervals.
+>   expanding-window tuning, three baselines and empirical prediction intervals checked by year.
 > - Weather-informed gradient boosting lowered test RMSE by 19% against a county-trend baseline (17.6 vs
 >   21.8 bu/acre), mainly in the 2012 drought. A year-level bootstrap and training-period CV did not confirm
 >   the gain, so I reported it as unestablished and kept forecasts disabled.
@@ -27,14 +27,16 @@ Add the repository link only once it is public, and a demo link only once it is 
 
 **One-line version:**
 > Exposed train/test leakage behind an R² of 1.00 in an internship crop-yield model, then built a
-> time-separated forecasting study on USDA/NASA data with baselines, conformal intervals and a
-> pre-registered acceptance rule (Python, scikit-learn).
+> time-separated forecasting study on USDA/NASA data with strong baselines, year-level uncertainty and
+> an acceptance rule written into the code before testing (Python, scikit-learn).
 
 ### Not supportable: do not write
 - "Achieved R² of 0.99/1.00", "99% accurate", "predicts crop yield from IoT sensors".
 - "Deployed live demo" (until a real URL exists), "used by farmers/hospitals", or any hospital link.
 - "Real farm sensor data" for Part A (it is synthetic).
 - "Sole author" of the internship notebook.
+- "Pre-registered" (there is no independently dated preregistration) or "conformal / guaranteed
+  coverage" (the intervals are empirical, from CV residuals also used for model selection).
 - "Model significantly outperforms baselines". True for two baselines, not established for the strongest one.
 
 ## Statement-of-purpose paragraph (≈150 words)
@@ -44,7 +46,7 @@ Add the repository link only once it is public, and a demo link only once it is 
 > That experience shaped how I approach machine learning. I rebuilt the project around a question that can
 > be tested honestly: can season-to-date weather improve an August forecast of Iowa county corn yield? Using
 > public USDA and NASA data, I trained on 1981–2011 and tested once on 2012–2025, against strong baselines
-> and with calibrated intervals. The model looked better on the test years, but year-level uncertainty and
+> and with empirical prediction intervals. The model looked better on the test years, but year-level uncertainty and
 > cross-validation did not confirm it, so I reported it as unestablished. I want to study how to build
 > models whose evaluation can be trusted, especially for temporal and spatial data.
 

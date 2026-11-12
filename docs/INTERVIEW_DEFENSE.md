@@ -42,7 +42,9 @@ evidence lives.
 10. **What does the expanding-window CV do?** Each validation block (e.g. 2003–05) is fitted only on earlier
     years. Hyperparameters were chosen by its pooled RMSE.
 11. **Why is the geographic check separate, and what does it not show?**
-    - It holds out whole NASS districts within 1981–2011.
+    - It holds out whole NASS districts within 1981–2011, and re-tunes the model inside each fold on the
+      other eight districts, so the held-out district never influences its own hyperparameters. (A first
+      version reused the globally tuned hyperparameters; fixing that moved RMSE from 16.83 to 16.68.)
     - The same seasons appear on both sides, so it shows transfer across space, not skill on new seasons.
 12. **Why bootstrap by year instead of by row?** County errors within a year are strongly correlated.
     Row resampling would pretend there are 1,282 independent cases when there are about 14 seasons.
@@ -67,12 +69,16 @@ evidence lives.
     - The weather–yield relationship shifted.
     - I did not change anything after seeing the test results.
 18. **How were the intervals built, and do they work?**
-    - Split conformal on time-ordered CV residuals: ±24.8 (80%) and ±32.7 (90%) bu/ac.
+    - Empirically: ± a quantile of the time-ordered CV residuals, ±24.8 (80%) and ±32.7 (90%) bu/ac.
+    - They are **not** split-conformal: those residuals also chose the model, so the calibration set is
+      not independent of selection, and residuals are not exchangeable across seasons. No guarantee.
     - Coverage is 86% / 94% overall, but only 68–69% at 80% in 2012 and 2020, because exchangeability breaks
       within shock years.
 19. **Why are there no SHAP plots?** Explanations of an unvalidated model invite over-interpretation, and
     associations are not causal effects anyway.
-20. **What was the gate, and why fix it in advance?** CV win plus a test gain whose CI is above 0. Fixing it
+20. **What was the gate, and was it preregistered?** CV win plus a test gain whose CI is above 0. It was
+    written into the code before the test scores were computed, but **not** independently preregistered,
+    so its timing rests on my account. Fixing it
     first prevents moving the goalposts after seeing results.
 
 ## Limitations (say these before you are asked)
@@ -83,7 +89,7 @@ evidence lives.
 ---
 
 ## An extension to implement yourself
-**Add NASS weekly crop-condition ratings as an August-1 feature and re-run the same pre-registered evaluation.**
+**Add NASS weekly crop-condition ratings as an August-1 feature and re-run the same evaluation and gate.**
 
 - **Why it matters:** condition ratings (% of corn rated good or excellent) are published weekly during the
   season and summarise field conditions that point weather misses. They are a standard input to real

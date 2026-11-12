@@ -32,7 +32,8 @@ baselines built from the county's own yield history, and does any improvement ho
 - History features use only years before *t*, so changing year *t* or later leaves them identical.
 - No feature uses another county's same-year yield, and identifiers are never inputs.
 - Training years end before test years begin, and each expanding-window fold trains only on earlier years.
-- Geographic folds hold out whole districts, so no county appears on both sides.
+- Geographic folds hold out whole districts, so no county appears on both sides, and every model choice
+  for a fold is made without the held-out district (tested).
 
 ## 2. Validation design
 
@@ -49,13 +50,19 @@ baselines built from the county's own yield history, and does any improvement ho
    - Histogram gradient boosting: allows thresholds such as heat above 30 °C and drought, plus interactions.
    - Both predict the deviation from `trend_pred`. Final forecast = trend + predicted deviation.
 6. **Uncertainty.**
-   - Split-conformal 80% and 90% intervals, calibrated on the 1,485 time-ordered CV residuals.
+   - Empirical 80% and 90% intervals: ± an upper quantile of the selected model's 1,485 time-ordered CV
+     residuals. The same residuals were used to choose the model, and residuals are correlated within a
+     season and shift over time, so these are **not** split-conformal intervals and have **no** coverage
+     guarantee. Coverage is checked empirically on the test years, overall and per year.
    - The test gain over each baseline uses a bootstrap that **resamples whole years**, because counties in
      one season share its weather shock.
-7. **Pre-registered gate** (written in code before the test was run): forecasts are published only if the
+7. **Acceptance gate** (written into the training script before the test scores were computed, by the author's account; this is not an independently dated preregistration): forecasts are published only if the
    model beats the best baseline in CV **and** its test RMSE gain over the strongest test baseline has a
    95% interval above 0.
 8. **Geographic check (separate).** Leave one of NASS's nine crop-reporting districts out, within 1981–2011.
+   Inside each fold, the model family and hyperparameters are re-selected by the same expanding-window CV,
+   run on the other eight districts only; the chosen model is refitted on them and scored once on the
+   held-out district.
 9. **Rolling-origin check (secondary).** Refit every test year on all earlier years, with the same hyperparameters.
 
 ## 3. Results
@@ -89,6 +96,14 @@ baselines built from the county's own yield history, and does any improvement ho
   hybrids, management and point-weather error. None was established.
 - After seeing the test results I did not change the protocol, features or gate.
 
+**Revision before merge (review of PR #1).** Three corrections were made after the first results:
+- "Pre-registered" was removed: the gate has no independently dated preregistration.
+- The intervals were relabelled as empirical CV-residual intervals with no conformal guarantee. Their
+  numbers are unchanged.
+- The geographic check previously reused hyperparameters chosen with all districts, including the held-out
+  one. It now re-tunes inside each fold; RMSE moved from 16.83 to 16.68, still 9 of 9 districts.
+The chronological test, its baselines, the selected model and the gate are unchanged.
+
 ### Rolling-origin annual refit (2012–2025)
 RMSE 17.88 vs trend 21.81. Gain 95% CI [−0.39, +9.34]. The same conclusion: probably helpful, not established.
 
@@ -99,11 +114,14 @@ RMSE 17.88 vs trend 21.81. Gain 95% CI [−0.39, +9.34]. The same conclusion: pr
 | 90% | ±32.7 bu/ac | 94.1% |
 
 Per-year coverage of the 80% interval ranges from 68% (2020) and 69% (2012) to 97% (2015). For the 90%
-interval it ranges from 80% to 100%. Exchangeability fails within a shock year. Calibrating on residuals from
+interval it ranges from 80% to 100%. Overall coverage above nominal is not evidence of a guarantee: the
+calibration residuals were also used for model selection, errors within a shock year move together, and
+the error distribution changes between eras. Calibrating on residuals from
 the more volatile 1997–2011 validation blocks probably also makes typical years conservative.
 
 ### Geographic check (leave-one-district-out, 1981–2011; reported separately)
-Model RMSE 16.83 vs trend 22.80. The model was better in **9 of 9** held-out districts. The same seasons
+Model RMSE 16.68 vs trend 22.80. The model was better in **9 of 9** held-out districts. In-fold tuning chose
+gradient boosting in every fold (depth 2, except depth 3 when East Central was held out). The same seasons
 appear on both sides, so this measures transfer across space, not skill on new seasons.
 
 ## 4. Error analysis (test years)
