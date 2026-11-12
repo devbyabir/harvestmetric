@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  pytest:
+  checks:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,7 +21,25 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: Install dependencies
+      - name: Install dependencies (clean environment)
         run: pip install -r requirements-dev.txt
-      - name: Run tests (raw dataset is not in the repository, so data-dependent tests skip)
+      - name: Lint (ruff)
+        run: python -m ruff check .
+      - name: Type check (mypy)
+        run: python -m mypy
+      - name: Tests, including the app on every page with committed data, a small fixture and no data
         run: python -m pytest -rs
+      - name: Rebuild Part B metrics from the committed panel and compare
+        run: |
+          cp reports/real/metrics.json /tmp/committed_metrics.json
+          python -m harvestmetric.real.train
+          python - <<'PY'
+          import json
+          a = json.load(open("/tmp/committed_metrics.json"))["results"]
+          b = json.load(open("reports/real/metrics.json"))["results"]
+          for name in a:
+              for split in ("cv", "test"):
+                  for k in ("rmse", "mae"):
+                      assert abs(a[name][split][k] - b[name][split][k]) < 0.05, (name, split, k)
+          print("Part B metrics reproduced from committed panel")
+          PY

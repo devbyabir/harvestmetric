@@ -490,8 +490,9 @@ Apache-2.0). It is synthetic. This app shows only aggregate results; the file is
   counties often share a grid cell. That approximates neither field conditions nor where corn is grown.
 - Targets are NASS's *current* published estimates. Values available in real time may have been revised since.
 - Counties NASS did not publish (2015 onward) are missing, and not at random.
-- The weather–yield relationship drifts over time (for example improving heat tolerance). That drift is
-  why training-period CV and test results disagree.
+- The weather–yield relationship is not stable across eras. Several late-1990s and 2002 seasons had high
+  heat at the weather point yet above-trend yields. That is why training-period CV and test results
+  disagree. The cause (management, hybrids, or point-weather error) was not established.
 - The 14 test years are few: year-level uncertainty dominates.
 
 Full documentation: `docs/` and the technical report `docs/report/HarvestMetric_technical_report.pdf`.
