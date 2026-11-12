@@ -65,8 +65,8 @@ def overview() -> None:
         "came from duplicated rows leaking across the train/test split of a *synthetic* dataset, and that "
         "with leakage removed no model beats the average. **Part B** asks the question properly on "
         "**real public data**: can Iowa county corn yield be forecast on 1 August from the season's "
-        "weather so far? It uses a strict chronological test on 2012–2025, strong baselines and calibrated "
-        "intervals.")
+        "weather so far? It uses a strict chronological test on 2012–2025, strong baselines and empirical "
+        "prediction intervals.")
     a, b = st.columns(2)
     with a:
         badge("a")
@@ -105,9 +105,11 @@ def overview() -> None:
 - **Part A:** the original R² was an artefact. The synthetic data has no learnable signal.
 - **Part B:** weather-informed gradient boosting cut test RMSE from {t['rmse']:.1f} to {m['rmse']:.1f}
   bu/ac. Most of the gain came in the 2012 drought. But the gain's 95% interval touches zero, and in
-  training-period cross-validation the model did **not** beat the trend baseline. By the rule fixed
-  before testing, the app therefore shows **evaluation results, not live forecasts**.
-- Intervals: 80% / 90% conformal intervals covered {iv['80%']['test_coverage']:.0%} /
+  training-period cross-validation the model did **not** beat the trend baseline. Under the acceptance
+  rule (written into the code before the test scores were computed; not independently preregistered),
+  the app therefore shows **evaluation results, not live forecasts**.
+- Intervals: 80% / 90% empirical CV-residual intervals (no coverage guarantee) covered
+  {iv['80%']['test_coverage']:.0%} /
   {iv['90%']['test_coverage']:.0%} of test county-years. Coverage drops in shock years.
             """)
         tp = app_data.read_table("real", "test_predictions.csv")
@@ -300,7 +302,9 @@ def evaluation_real() -> None:
     vs_fmt["Share of resamples better"] = "{:.1%}"
     st.dataframe(vs.style.format(vs_fmt), hide_index=True)
     res = real_metrics["results"]
-    st.markdown(f"**Forecast gate: {'passed' if real_supported else 'not passed'}.** Rule fixed before testing: "
+    st.markdown(f"**Forecast gate: {'passed' if real_supported else 'not passed'}.** Acceptance rule "
+                "(written into the code before the test scores were computed, by the author's account; not an "
+                "independently dated preregistration): "
                 f"{sel['gate']}. In CV the selected model's RMSE ({res[sel['selected_model']]['cv']['rmse']:.2f}) "
                 f"was worse than the trend baseline's ({res['County trend']['cv']['rmse']:.2f}), and the test "
                 "gain's interval reaches zero.")
@@ -312,7 +316,11 @@ def evaluation_real() -> None:
         fig.add_bar(x=by_year.year, y=by_year.model_rmse, name=sel["selected_model"], marker_color=GREEN)
         fig.update_layout(barmode="group", yaxis_title="RMSE (bu/ac)")
         st.plotly_chart(fig_layout(fig, 320, "Test RMSE by year"))
-        st.markdown("**Prediction intervals** (split conformal, calibrated on time-ordered CV residuals)")
+        st.markdown("**Prediction intervals: empirical, from CV residuals.** The band is ± an upper quantile of "
+                    "the selected model's expanding-window CV residuals in the training years. Those residuals "
+                    "were also used to choose the model, and errors are correlated within a season, so this is "
+                    "**not** a split-conformal interval and has **no coverage guarantee**; coverage is only "
+                    "checked on the test years below.")
         iv = real_metrics["intervals"]
         c1, c2 = st.columns(2)
         c1.metric("80% interval: coverage on test", f"{iv['80%']['test_coverage']:.1%}",
@@ -337,7 +345,9 @@ def evaluation_real() -> None:
     st.divider()
     geo, g = app_data.read_table("real", "geographic_check.csv"), real_metrics["geographic_check"]
     st.markdown("**2 · Geographic generalisation (separate check)**: leave one NASS crop-reporting district out, "
-                "within training years only. The same seasons appear on both sides, so this measures transfer "
+                "within training years only. For each held-out district the model family and hyperparameters "
+                "are re-chosen by expanding-window CV on the other eight districts, so the held-out district "
+                "influences nothing it is scored on. The same seasons appear on both sides, so this measures transfer "
                 "across space, not forecasting of new seasons.")
     if geo is not None:
         fig = go.Figure()

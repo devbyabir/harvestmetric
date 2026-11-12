@@ -1,10 +1,10 @@
-held_out_district,n,model_rmse,model_mae,trend_rmse,trend_mae
-NORTHWEST,372,16.112,12.077,19.7,14.273
-NORTH CENTRAL,341,15.053,11.227,19.983,14.345
-NORTHEAST,341,15.549,11.86,20.736,14.722
-WEST CENTRAL,372,14.607,11.315,18.069,13.924
-CENTRAL,372,13.56,10.393,20.437,15.244
-EAST CENTRAL,310,16.201,12.595,24.408,18.63
-SOUTHWEST,279,15.987,12.476,20.823,16.43
-SOUTH CENTRAL,341,19.971,15.753,27.795,21.783
-SOUTHEAST,341,22.73,16.807,30.763,23.212
+held_out_district,n,model_rmse,model_mae,trend_rmse,trend_mae,model_chosen_in_fold,params_chosen_in_fold,inner_cv_rmse
+NORTHWEST,372,16.112,12.077,19.7,14.273,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",20.032
+NORTH CENTRAL,341,15.053,11.227,19.983,14.345,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",20.354
+NORTHEAST,341,15.549,11.86,20.736,14.722,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",19.929
+WEST CENTRAL,372,14.607,11.315,18.069,13.924,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",20.522
+CENTRAL,372,13.56,10.393,20.437,15.244,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",19.688
+EAST CENTRAL,310,14.592,11.308,24.408,18.63,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 3, ""max_iter"": 200, ""min_samples_leaf"": 40}",19.505
+SOUTHWEST,279,15.987,12.476,20.823,16.43,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",19.997
+SOUTH CENTRAL,341,19.971,15.753,27.795,21.783,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",19.348
+SOUTHEAST,341,22.73,16.807,30.763,23.212,Trend + gradient boosting,"{""learning_rate"": 0.03, ""max_depth"": 2, ""max_iter"": 200, ""min_samples_leaf"": 40}",18.371

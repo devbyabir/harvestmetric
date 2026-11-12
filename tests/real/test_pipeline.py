@@ -3,8 +3,8 @@ import pandas as pd
 import pytest
 
 from harvestmetric.real import config
-from harvestmetric.real.conformal import conformal_quantile, coverage, intervals
 from harvestmetric.real.forecast import ForecastInputError, forecast_rows
+from harvestmetric.real.intervals import coverage, empirical_quantile, intervals
 from harvestmetric.real.models import (
     HistoricalMeanBaseline,
     PreviousYearBaseline,
@@ -133,6 +133,28 @@ def test_district_folds_hold_out_whole_districts(panel):
         assert panel.district_code.iloc[te].nunique() == 1
 
 
+def test_geographic_check_tunes_without_held_out_district(panel, monkeypatch):
+    """Every model choice for a held-out district must be made on the other districts only."""
+    from harvestmetric.real import train as train_mod
+
+    tr_years, _ = time_split(panel)
+    seen: list[set[str]] = []
+    real_tune = train_mod.tune
+
+    def spy(cands, frame, folds):
+        seen.append(set(frame.district_code))
+        return real_tune(cands, frame, folds)
+
+    monkeypatch.setattr(train_mod, "tune", spy)
+    small = {n: (est, grid[:1]) for n, (est, grid) in candidates().items()}
+    geo, pred = train_mod.geographic_check(tr_years, small)
+    codes = sorted(tr_years.district_code.unique())
+    assert len(seen) == len(codes) == len(geo)
+    for held_out, used in zip(codes, seen, strict=True):
+        assert held_out not in used and used == set(codes) - {held_out}
+    assert pred.notna().all() and set(geo.model_chosen_in_fold) <= set(small)
+
+
 # ------------------------------------------------------------------ models / predictions
 
 
@@ -183,9 +205,9 @@ def test_forecast_rows_validates_and_gates(panel):
 # ------------------------------------------------------------------ uncertainty / statistics
 
 
-def test_conformal_coverage_on_exchangeable_data():
+def test_empirical_interval_coverage_on_iid_data():
     rng = np.random.default_rng(0)
-    q = conformal_quantile(rng.normal(0, 1, 2000), 0.9)
+    q = empirical_quantile(rng.normal(0, 1, 2000), 0.9)
     y = rng.normal(0, 1, 20000)
     lo, hi = intervals(np.zeros_like(y), q)
     assert 0.88 < coverage(y, lo, hi) < 0.92

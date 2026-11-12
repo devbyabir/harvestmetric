@@ -40,7 +40,7 @@ FORECAST_MONTH_DAY = (8, 1)
 # ---- Splits ----------------------------------------------------------------
 TRAIN_END = 2011                # training years: FIRST_MODEL_YEAR .. TRAIN_END
 TEST_START = 2012               # untouched test years: TEST_START .. LAST_YIELD_YEAR
-# Expanding-window validation blocks inside the training period (tuning + conformal calibration)
+# Expanding-window validation blocks inside the training period (tuning + empirical interval residuals)
 CV_BLOCKS = [(1997, 1999), (2000, 2002), (2003, 2005), (2006, 2008), (2009, 2011)]
 
 # ---- Sources ---------------------------------------------------------------

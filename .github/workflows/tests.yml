@@ -35,11 +35,20 @@ jobs:
           python -m harvestmetric.real.train
           python - <<'PY'
           import json
-          a = json.load(open("/tmp/committed_metrics.json"))["results"]
-          b = json.load(open("reports/real/metrics.json"))["results"]
+          A = json.load(open("/tmp/committed_metrics.json"))
+          B = json.load(open("reports/real/metrics.json"))
+          a, b = A["results"], B["results"]
           for name in a:
               for split in ("cv", "test"):
                   for k in ("rmse", "mae"):
                       assert abs(a[name][split][k] - b[name][split][k]) < 0.05, (name, split, k)
+          for k in ("rmse", "mae"):  # geographic check, tuned inside each district fold
+              assert abs(A["geographic_check"]["model"][k] - B["geographic_check"]["model"][k]) < 0.05, ("geo", k)
+          assert A["geographic_check"]["districts_where_model_beats_trend"] == \
+              B["geographic_check"]["districts_where_model_beats_trend"]
+          for lvl in ("80%", "90%"):  # empirical CV-residual intervals
+              for k in ("half_width_bu_ac", "test_coverage"):
+                  assert abs(A["intervals"][lvl][k] - B["intervals"][lvl][k]) < 0.05, ("intervals", lvl, k)
+          assert A["selection"]["prediction_supported"] == B["selection"]["prediction_supported"]
           print("Part B metrics reproduced from committed panel")
           PY

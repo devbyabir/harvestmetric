@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-12T10:26:22Z",
+  "generated_utc": "2026-11-12T12:43:53Z",
   "versions": {
     "scikit-learn": "1.9.1",
     "pandas": "3.1.1",
@@ -136,6 +136,7 @@
     "best_cv_baseline": "County trend",
     "strongest_test_baseline": "County trend",
     "rule": "lowest expanding-window CV RMSE among learned models; test used once afterwards",
+    "rule_status": "acceptance rule written into this script before the test scores were computed (author's account); not an independently dated preregistration",
     "vs_baselines_year_bootstrap": {
       "Historical mean": {
         "rmse_gain": 24.02879811374406,
@@ -163,7 +164,8 @@
     "gate": "selected model beats best CV baseline in CV AND its test RMSE gain over the strongest test baseline has a year-cluster bootstrap 95% CI above 0"
   },
   "intervals": {
-    "method": "split conformal on expanding-window CV residuals (training years)",
+    "method": "empirical intervals: +/- upper quantile of |expanding-window CV residuals| of the selected model (training years)",
+    "guarantee": "none: the same CV residuals were used for model selection, and residuals are correlated within years and shift over time, so split-conformal coverage does not apply; coverage is only checked empirically on the test years",
     "calibration_rows": 1485,
     "80%": {
       "half_width_bu_ac": 24.77516645357295,
@@ -175,11 +177,12 @@
     }
   },
   "geographic_check": {
-    "design": "leave-one-NASS-district-out, training years 1981-2011 only",
+    "design": "leave-one-NASS-district-out, training years 1981-2011 only; model family and hyperparameters re-selected inside each fold by expanding-window CV on the other eight districts",
+    "caveat": "same seasons on both sides: measures transfer across space, not skill on new seasons",
     "model": {
-      "r2": 0.7168169413397112,
-      "mae": 12.684591231552972,
-      "rmse": 16.8263114906382,
+      "r2": 0.7218221570015507,
+      "mae": 12.554568932178764,
+      "rmse": 16.676947357545814,
       "n": 3069
     },
     "trend": {
@@ -225,5 +228,5 @@
     "produced": false,
     "reason": "prediction gate not passed"
   },
-  "runtime_seconds": 8.7
+  "runtime_seconds": 57.3
 }

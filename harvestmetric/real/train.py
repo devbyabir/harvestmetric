@@ -9,9 +9,13 @@ Protocol
 3. Model selection on CV RMSE only; the test years are scored once afterwards.
 4. Significance vs baselines with a bootstrap that resamples whole years,
    because errors of counties in the same season are strongly correlated.
-5. 80% / 90% split-conformal intervals calibrated on the time-ordered CV
-   residuals; coverage reported overall and per test year.
-6. Separate geographic check: leave-one-district-out inside the training years.
+5. 80% / 90% empirical intervals from the expanding-window CV residuals of the
+   selected model. These residuals were also used for model selection, so the
+   intervals have no split-conformal coverage guarantee; coverage is checked
+   empirically, overall and per test year.
+6. Separate geographic check: leave-one-district-out inside the training years,
+   with model choice and hyperparameters re-tuned inside every district fold
+   (expanding-window CV on the other eight districts only).
 7. Error analysis by year, district and weather-defined extreme groups.
 8. Rolling-origin annual refit backtest, then a production refit for 2026.
 """
@@ -30,7 +34,7 @@ from sklearn.base import clone
 
 from ..metrics import regression_metrics
 from . import config
-from .conformal import conformal_quantile, coverage, intervals
+from .intervals import coverage, empirical_quantile, intervals
 from .models import DEVIATION_FEATURES, candidates, is_baseline
 from .splits import district_folds, expanding_window_folds, time_split
 
@@ -80,6 +84,54 @@ def grouped_metrics(frame: pd.DataFrame, by: str, cols: dict[str, str]) -> pd.Da
     return pd.DataFrame(rows)
 
 
+def tune(cands: dict, frame: pd.DataFrame, folds) -> dict[str, tuple[dict, dict, np.ndarray]]:
+    """Best (params, CV metrics, out-of-fold predictions) per candidate, by pooled CV RMSE.
+
+    Uses only `frame`; callers decide which rows it contains.
+    """
+    mask = np.zeros(len(frame), bool)
+    for _, va in folds:
+        mask[va] = True
+    out = {}
+    for name, (est, grid) in cands.items():
+        best: tuple[dict, dict, np.ndarray] | None = None
+        for params in grid:
+            oof = cv_predict(clone(est).set_params(**params), frame, folds)
+            m = regression_metrics(frame[config.TARGET][mask], oof[mask])
+            if best is None or m["rmse"] < best[1]["rmse"]:
+                best = (params, m, oof)
+        assert best is not None
+        out[name] = best
+    return out
+
+
+def geographic_check(train: pd.DataFrame, cands: dict) -> tuple[pd.DataFrame, pd.Series]:
+    """Leave-one-district-out with all model choices made inside each fold.
+
+    For every held-out district, the learned model family and its hyperparameters are
+    chosen by expanding-window CV on the other eight districts only, then refitted on
+    those districts and scored once on the held-out one. No row of the held-out
+    district influences any choice made for it.
+    """
+    learned = {n: c for n, c in cands.items() if not is_baseline(n)}
+    rows, pred = [], pd.Series(np.nan, index=train.index)
+    for district, tr, te in district_folds(train):
+        inner = train.iloc[tr].reset_index(drop=True)
+        tuned = tune(learned, inner, expanding_window_folds(inner))
+        name = min(tuned, key=lambda n: tuned[n][1]["rmse"])
+        params, inner_cv, _ = tuned[name]
+        model = clone(learned[name][0]).set_params(**params).fit(inner, inner[config.TARGET])
+        pred.iloc[te] = model.predict(train.iloc[te])
+        m = regression_metrics(train[config.TARGET].iloc[te], pred.iloc[te])
+        t = regression_metrics(train[config.TARGET].iloc[te], train.trend_pred.iloc[te])
+        rows.append({"held_out_district": district, "n": m["n"], "model_rmse": m["rmse"],
+                     "model_mae": m["mae"], "trend_rmse": t["rmse"], "trend_mae": t["mae"],
+                     "model_chosen_in_fold": name,
+                     "params_chosen_in_fold": json.dumps({k.split("__")[-1]: v for k, v in params.items()}),
+                     "inner_cv_rmse": inner_cv["rmse"]})
+    return pd.DataFrame(rows), pred
+
+
 def run() -> dict:
     t0 = time.time()
     panel = load_panel()
@@ -94,15 +146,9 @@ def run() -> dict:
     for _, va in folds:
         cv_mask[va] = True
     results, fitted, oof_best = {}, {}, {}
-    for name, (est, grid) in cands.items():
-        best: tuple[dict, dict, np.ndarray] | None = None
-        for params in grid:
-            oof = cv_predict(clone(est).set_params(**params), train, folds)
-            m = regression_metrics(train[config.TARGET][cv_mask], oof[cv_mask])
-            if best is None or m["rmse"] < best[1]["rmse"]:
-                best = (params, m, oof)
-        assert best is not None
-        params, cv_m, oof = best
+    tuned = tune(cands, train, folds)
+    for name, (est, _) in cands.items():
+        params, cv_m, oof = tuned[name]
         model = clone(est).set_params(**params).fit(train, train[config.TARGET])
         pred = model.predict(test)
         fitted[name], oof_best[name] = model, oof
@@ -123,9 +169,10 @@ def run() -> dict:
     # ---- 2. significance vs every baseline (year-cluster bootstrap)
     vs = {b: year_bootstrap_rmse_gain(test, test[sel_col], test[f"pred_{b}"]) for b in baselines}
 
-    # ---- 3. conformal intervals from time-ordered CV residuals
+    # ---- 3. empirical intervals from the selected model's time-ordered CV residuals.
+    # These residuals also drove model selection, so there is no conformal guarantee.
     resid = (train[config.TARGET] - oof_best[selected])[cv_mask]
-    qs = {lvl: conformal_quantile(resid, lvl) for lvl in LEVELS}
+    qs = {lvl: empirical_quantile(resid, lvl) for lvl in LEVELS}
     for lvl, q in qs.items():
         lo, hi = intervals(test[sel_col], q)
         test[f"lo{int(lvl*100)}"], test[f"hi{int(lvl*100)}"] = lo, hi
@@ -173,18 +220,10 @@ def run() -> dict:
                          "rmse_increase_std": float(np.std(incs))})
         importance = pd.DataFrame(rows).sort_values("rmse_increase_mean", ascending=False)
 
-    # ---- 6. geographic generalisation (training years only; reported separately)
-    geo_rows, geo_pred = [], pd.Series(np.nan, index=train.index)
+    # ---- 6. geographic generalisation (training years only; reported separately; tuned inside each fold)
     sel_est = clone(cands[selected][0]).set_params(**{f"{k}": v for k, v in
                                                      _full_params(cands[selected], results[selected]).items()})
-    for district, tr, te in district_folds(train):
-        model = clone(sel_est).fit(train.iloc[tr], train[config.TARGET].iloc[tr])
-        geo_pred.iloc[te] = model.predict(train.iloc[te])
-        m = regression_metrics(train[config.TARGET].iloc[te], geo_pred.iloc[te])
-        t = regression_metrics(train[config.TARGET].iloc[te], train.trend_pred.iloc[te])
-        geo_rows.append({"held_out_district": district, "n": m["n"], "model_rmse": m["rmse"],
-                         "model_mae": m["mae"], "trend_rmse": t["rmse"], "trend_mae": t["mae"]})
-    geo = pd.DataFrame(geo_rows)
+    geo, geo_pred = geographic_check(train, cands)
     geo_overall = {"model": regression_metrics(train[config.TARGET], geo_pred),
                    "trend": regression_metrics(train[config.TARGET], train.trend_pred),
                    "districts_where_model_beats_trend": int((geo.model_rmse < geo.trend_rmse).sum())}
@@ -200,7 +239,7 @@ def run() -> dict:
     roll_m = regression_metrics(roll_df[config.TARGET], roll_df.pred_roll)
     roll_trend = regression_metrics(roll_df[config.TARGET], roll_df.trend_pred)
     roll_vs_trend = year_bootstrap_rmse_gain(roll_df, roll_df.pred_roll, roll_df.trend_pred)
-    prod_q = {lvl: conformal_quantile(roll_df[config.TARGET] - roll_df.pred_roll, lvl) for lvl in LEVELS}
+    prod_q = {lvl: empirical_quantile(roll_df[config.TARGET] - roll_df.pred_roll, lvl) for lvl in LEVELS}
     production, future = None, None
     if gate:  # forecasts for the unreleased season are produced only for a validated model
         production = clone(sel_est).fit(obs, obs[config.TARGET])
@@ -223,12 +262,22 @@ def run() -> dict:
         "selection": {"selected_model": selected, "best_cv_baseline": best_cv_baseline,
                       "strongest_test_baseline": strongest_test_baseline,
                       "rule": "lowest expanding-window CV RMSE among learned models; test used once afterwards",
+                      "rule_status": ("acceptance rule written into this script before the test scores were "
+                                      "computed (author's account); not an independently dated preregistration"),
                       "vs_baselines_year_bootstrap": vs, "prediction_supported": gate,
                       "gate": ("selected model beats best CV baseline in CV AND its test RMSE gain over the "
                                "strongest test baseline has a year-cluster bootstrap 95% CI above 0")},
-        "intervals": {"method": "split conformal on expanding-window CV residuals (training years)",
+        "intervals": {"method": ("empirical intervals: +/- upper quantile of |expanding-window CV residuals| "
+                                 "of the selected model (training years)"),
+                      "guarantee": ("none: the same CV residuals were used for model selection, and residuals are "
+                                    "correlated within years and shift over time, so split-conformal coverage "
+                                    "does not apply; coverage is only checked empirically on the test years"),
                       "calibration_rows": int(cv_mask.sum()), **cov},
-        "geographic_check": {"design": "leave-one-NASS-district-out, training years 1981-2011 only",
+        "geographic_check": {"design": ("leave-one-NASS-district-out, training years 1981-2011 only; model "
+                                        "family and hyperparameters re-selected inside each fold by "
+                                        "expanding-window CV on the other eight districts"),
+                             "caveat": ("same seasons on both sides: measures transfer across space, not skill "
+                                        "on new seasons"),
                              **geo_overall},
         "weather_thresholds_from_train": {k: float(v) for k, v in p.items()},
         "rolling_origin_refit": {"years": [config.TEST_START, config.LAST_YIELD_YEAR],
@@ -236,7 +285,8 @@ def run() -> dict:
                                  "model": roll_m, "trend": roll_trend, "vs_trend_year_bootstrap": roll_vs_trend},
         "forecast_2026": ({"counties": int(len(future)) if future is not None else 0,
                            "interval_half_widths": {f"{int(k*100)}%": v for k, v in prod_q.items()},
-                           "calibration": "rolling-origin residuals 2012-2025"} if gate else
+                           "calibration": ("empirical, rolling-origin residuals 2012-2025; "
+                                           "no coverage guarantee")} if gate else
                           {"produced": False, "reason": "prediction gate not passed"}),
         "runtime_seconds": round(time.time() - t0, 1),
     }

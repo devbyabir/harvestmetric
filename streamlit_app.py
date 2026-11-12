@@ -32,7 +32,7 @@ part_b = [
     st.Page("app_pages/errors.py", title="Error analysis", icon="🔍", url_path="errors"),
     st.Page("app_pages/scenarios.py", title="Scenarios", icon="⚖️", url_path="scenarios"),
 ]
-if forecasts_enabled():  # only when the real-data model passed its pre-registered gate
+if forecasts_enabled():  # only when the real-data model passed its acceptance gate
     part_b.append(st.Page("app_pages/forecasts.py", title="2026 forecasts", icon="🔮", url_path="forecasts"))
 
 st.navigation({
