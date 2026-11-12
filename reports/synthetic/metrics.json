@@ -1,13 +1,15 @@
 {
-  "generated_utc": "2026-11-12T09:20:40Z",
+  "generated_utc": "2026-11-12T10:15:06Z",
   "versions": {
     "scikit-learn": "1.9.1",
     "pandas": "3.1.1",
     "numpy": "2.5.4"
   },
   "data": {
-    "raw_rows": 5000,
+    "source_file": "Smart_Farming_Crop_Yield_2024.csv",
+    "raw_rows": 500,
     "unique_rows": 500,
+    "original_working_copy_rows": 5000,
     "train_farms": 400,
     "test_farms": 100,
     "test_farm_ids": [
@@ -200,26 +202,26 @@
           "rmse": 1177.823259201773,
           "n": 100
         },
-        "seconds": 5.1
+        "seconds": 4.9
       },
       "Random forest": {
         "cv": {
-          "r2": -0.06276411476935721,
-          "mae": 1055.287521239717,
+          "r2": -0.06276411476935735,
+          "mae": 1055.2875212397173,
           "rmse": 1204.3670944281716
         },
-        "cv_r2_std": 0.03329817762675424,
+        "cv_r2_std": 0.03329817762675382,
         "best_params": {
           "max_depth": 3,
           "min_samples_leaf": 20
         },
         "test": {
-          "r2": -0.030511823158654083,
-          "mae": 1020.7344795976232,
-          "rmse": 1192.133234467267,
+          "r2": -0.030511823158653417,
+          "mae": 1020.734479597623,
+          "rmse": 1192.1332344672664,
           "n": 100
         },
-        "seconds": 8.7
+        "seconds": 8.0
       },
       "Gradient boosting": {
         "cv": {
@@ -239,7 +241,7 @@
           "rmse": 1183.060162196126,
           "n": 100
         },
-        "seconds": 2.0
+        "seconds": 1.8
       }
     },
     "full_season": {
@@ -295,22 +297,22 @@
       },
       "Random forest": {
         "cv": {
-          "r2": -0.04945396494633445,
-          "mae": 1045.9479404326162,
+          "r2": -0.0494539649463344,
+          "mae": 1045.9479404326157,
           "rmse": 1196.7689012028545
         },
-        "cv_r2_std": 0.049328945713878816,
+        "cv_r2_std": 0.049328945713878844,
         "best_params": {
           "max_depth": 3,
           "min_samples_leaf": 20
         },
         "test": {
-          "r2": 0.004241017724552432,
-          "mae": 1012.9337131833566,
-          "rmse": 1171.8591688658685,
+          "r2": 0.00424101772455221,
+          "mae": 1012.9337131833564,
+          "rmse": 1171.8591688658687,
           "n": 100
         },
-        "seconds": 9.2
+        "seconds": 8.9
       },
       "Gradient boosting": {
         "cv": {
@@ -367,8 +369,9 @@
   },
   "legacy_split_demo": {
     "rows": 5000,
+    "working_copy_recreated_from_official_file": true,
     "model": "Random forest, full_season features",
     "row_level_kfold_r2": 0.9999735566596357,
-    "grouped_by_farm_kfold_r2": -0.2061659771383228
+    "grouped_by_farm_kfold_r2": -0.2061659771383229
   }
 }

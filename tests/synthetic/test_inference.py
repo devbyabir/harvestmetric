@@ -4,11 +4,11 @@ import pytest
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 
-from harvestmetric import config
-from harvestmetric.data import prepare
-from harvestmetric.features import AT_SOWING, build_preprocessor
-from harvestmetric.inference import InputError, load_artifact, predict
-from harvestmetric.models import GroupMeanRegressor
+from harvestmetric.synthetic import config
+from harvestmetric.synthetic.data import prepare
+from harvestmetric.synthetic.features import AT_SOWING, build_preprocessor
+from harvestmetric.synthetic.inference import InputError, load_artifact, predict
+from harvestmetric.synthetic.models import GroupMeanRegressor
 
 
 @pytest.fixture
@@ -72,20 +72,40 @@ def test_group_mean_baseline(frame):
 
 
 def test_compare_groups_detects_clear_difference():
-    from harvestmetric.analytics import compare_groups
+    from harvestmetric.synthetic.analytics import compare_groups
     rng = np.random.default_rng(0)
     c = compare_groups(rng.normal(5000, 100, 50), rng.normal(3000, 100, 50))
     assert c.conclusive and 1900 < c.diff < 2100 and c.ci_low > 0
 
 
 def test_compare_groups_identical_distributions_inconclusive():
-    from harvestmetric.analytics import compare_groups
+    from harvestmetric.synthetic.analytics import compare_groups
     rng = np.random.default_rng(1)
     x = rng.uniform(2000, 6000, 200)
     assert not compare_groups(x[:100], x[100:]).conclusive
 
 
 def test_compare_groups_needs_data():
-    from harvestmetric.analytics import compare_groups
+    from harvestmetric.synthetic.analytics import compare_groups
     with pytest.raises(ValueError, match="at least 2"):
         compare_groups([1.0], [1.0, 2.0])
+
+
+def test_simulator_reproduces_leakage_with_pure_noise():
+    from harvestmetric.synthetic.simulator import simulate
+    r = simulate(n_farms=120, copies=10, signal=0.0, n_estimators=30)
+    assert r.row_level_r2 > 0.9          # memorisation through duplicates
+    assert r.grouped_r2 < 0.1            # honest estimate: no skill
+    assert r.rows == 1200
+
+
+def test_simulator_without_duplicates_has_no_gap():
+    from harvestmetric.synthetic.simulator import simulate
+    r = simulate(n_farms=200, copies=1, signal=0.6, n_estimators=30)
+    assert abs(r.row_level_r2 - r.grouped_r2) < 0.1 and r.grouped_r2 > 0.3
+
+
+def test_simulator_rejects_bad_signal():
+    from harvestmetric.synthetic.simulator import make_dataset
+    with pytest.raises(ValueError, match="signal"):
+        make_dataset(50, 2, 1.5)

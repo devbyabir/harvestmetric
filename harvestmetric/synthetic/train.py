@@ -18,6 +18,7 @@ import argparse
 import json
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 import joblib
 import numpy as np
@@ -31,11 +32,17 @@ from sklearn.pipeline import Pipeline
 
 from . import config
 from .data import load_dataset, read_raw, prepare
-from .evaluate import (bootstrap_ci, breakdown, paired_bootstrap_improvement,
-                       regression_metrics, yield_band)
+from ..metrics import bootstrap_ci, breakdown, paired_bootstrap_improvement, regression_metrics
 from .features import AT_SOWING, FEATURE_SETS, FULL_SEASON, build_preprocessor
 from .models import candidate_models
 from .split import group_holdout_split
+
+
+
+def yield_band(y: pd.Series) -> pd.Series:
+    return pd.cut(y, bins=[2000, 3000, 4000, 5000, 6000.01], right=False,
+                  labels=["2000-3000", "3000-4000", "4000-5000", "5000-6000"])
+
 
 SCORING = {"r2": "r2", "mae": "neg_mean_absolute_error", "rmse": "neg_root_mean_squared_error"}
 
@@ -87,10 +94,17 @@ def evaluate_feature_set(fs, train: pd.DataFrame, test: pd.DataFrame) -> dict:
 
 
 def legacy_split_demo(path) -> dict:
-    """Mimic the notebook: row-level KFold on the 10x duplicated file vs grouped CV."""
+    """Mimic the notebook: row-level KFold on the 10x duplicated working copy vs grouped CV.
+
+    The notebook's working copy held every official record exactly
+    config.LEGACY_COPIES times (verified record-identical on 2026-11-12). If the
+    input has no duplicates (the official Kaggle file), that copy is recreated
+    here, so the demonstration does not depend on the unpublished local file.
+    """
     raw = prepare(read_raw(path))
-    if len(raw) == raw.drop_duplicates().shape[0]:
-        return {"skipped": "file has no duplicate rows (row-level and grouped CV coincide)"}
+    recreated = len(raw) == raw.drop_duplicates().shape[0]
+    if recreated:
+        raw = pd.concat([raw] * config.LEGACY_COPIES, ignore_index=True)
     fs = FULL_SEASON
     model = Pipeline([("prep", build_preprocessor(fs)),
                       ("model", RandomForestRegressor(n_estimators=200, n_jobs=-1,
@@ -104,6 +118,7 @@ def legacy_split_demo(path) -> dict:
                               scoring="r2")
     return {
         "rows": int(len(raw)),
+        "working_copy_recreated_from_official_file": recreated,
         "model": "Random forest, full_season features",
         "row_level_kfold_r2": float(row_level.mean()),
         "grouped_by_farm_kfold_r2": float(grouped.mean()),
@@ -118,7 +133,9 @@ def run(path=None, n_permutations: int = 200) -> dict:
     out = {
         "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "versions": {"scikit-learn": sklearn.__version__, "pandas": pd.__version__, "numpy": np.__version__},
-        "data": {"raw_rows": load_report.raw_rows, "unique_rows": load_report.unique_rows,
+        "data": {"source_file": Path(load_report.path).name,
+                 "raw_rows": load_report.raw_rows, "unique_rows": load_report.unique_rows,
+                 "original_working_copy_rows": load_report.unique_rows * config.LEGACY_COPIES,
                  "train_farms": int(len(train)), "test_farms": int(len(test)),
                  "test_farm_ids": sorted(test[config.GROUP_COL].tolist())},
         "prediction_point": AT_SOWING.description,
@@ -178,14 +195,15 @@ def run(path=None, n_permutations: int = 200) -> dict:
     frame["baseline"] = base["_pred"]
     frame["abs_error"] = (frame.predicted - frame[config.TARGET]).abs()
     frame["yield_band"] = yield_band(frame[config.TARGET])
-    by_crop = breakdown(frame, "crop_type")
-    by_band = breakdown(frame, "yield_band")
+    by_crop = breakdown(frame, "crop_type", config.TARGET)
+    by_band = breakdown(frame, "yield_band", config.TARGET)
     worst = frame.sort_values("abs_error", ascending=False).head(10)
     out["selection"]["prediction_spread"] = {
         "test_pred_std": float(np.std(sel["_pred"])), "test_actual_std": float(np.std(y_te)),
         "pred_min": float(np.min(sel["_pred"])), "pred_max": float(np.max(sel["_pred"]))}
 
     config.TABLES_DIR.mkdir(parents=True, exist_ok=True)
+    config.REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     by_crop.round(2).to_csv(config.TABLES_DIR / "test_by_crop.csv", index=False)
     by_band.round(2).to_csv(config.TABLES_DIR / "test_by_yield_band.csv", index=False)
     worst.round(2).to_csv(config.TABLES_DIR / "test_worst_errors.csv", index=False)

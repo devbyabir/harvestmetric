@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 
-from harvestmetric.data import DataValidationError, load_dataset, parse_dates, prepare, validate
-from harvestmetric.inference import InputError, validate_input
+from harvestmetric.synthetic.data import DataValidationError, load_dataset, parse_dates, prepare, validate
+from harvestmetric.synthetic.inference import InputError, validate_input
 
 
 def test_valid_frame_has_no_issues(frame):
@@ -94,8 +94,8 @@ def test_all_errors_reported_together(valid_record):
 
 
 def test_provenance_compare_matches_duplicated_copy(tmp_path):
-    from harvestmetric.provenance import compare
-    from tests.conftest import make_frame
+    from harvestmetric.synthetic.provenance import compare
+    from tests.synthetic.conftest import make_frame
     base = make_frame(n_farms=20)
     base.to_csv(tmp_path / "a.csv", index=False)
     dup = make_frame(n_farms=20, copies=10)

@@ -1,15 +1,15 @@
 {
   "file": {
-    "path": "final_dataset_crop_yield.csv",
-    "sha256": "d3fbc283f6a9d3eb06b302267d4cfd7db8bc07ef4133c30edfde67cb8d101847",
-    "bytes": 837390
+    "path": "Smart_Farming_Crop_Yield_2024.csv",
+    "sha256": "49b1f2451c9c9f67dcfe1b5aafbbaa77f30385231a4baf7c13c2b2f92d77940d",
+    "bytes": 83584
   },
   "load_issues": [],
   "duplicates": {
-    "raw_rows": 5000,
+    "raw_rows": 500,
     "unique_rows": 500,
     "copies_per_unique_row": [
-      10
+      1
     ],
     "unique_farm_ids": 500,
     "unique_sensor_ids": 500,
@@ -189,7 +189,7 @@
     }
   ],
   "findings": [
-    "Each of the 500 unique rows appears 10 times; a row-level split therefore places identical copies in train and test.",
+    "The official file has one row per farm (500 farms). The working copy used by the original notebook repeated every record 10 times (verified record-identical to the official file), so its row-level split placed identical copies in train and test.",
     "Coordinates do not match region labels: every region spans the same box (lat ~10-35, lon ~70-90 E). US regions would need negative longitudes; East Africa lies at lon ~28-52 E.",
     "All sowing dates fall in 2024-01-01 .. 2024-03-28 with the same window for every crop and region, although regional cropping calendars differ (e.g. Indian rice/cotton are usually sown in the monsoon season).",
     "10 of 11 numeric columns are statistically indistinguishable from a uniform distribution (KS p > 0.05).",

@@ -1,24 +1,29 @@
-"""Project-wide constants: paths, column schema, documented value ranges."""
+"""Part A constants: paths, column schema, documented value ranges of the synthetic dataset."""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = PROJECT_ROOT / "data" / "raw"
-REPORTS_DIR = PROJECT_ROOT / "reports"
+from ..paths import ARTIFACTS_DIR as _ARTIFACTS, DATA_DIR as _DATA, PROJECT_ROOT, REPORTS_DIR as _REPORTS
+
+DATA_DIR = _DATA / "raw" / "synthetic"
+REPORTS_DIR = _REPORTS / "synthetic"
 TABLES_DIR = REPORTS_DIR / "tables"
-FIGURES_DIR = REPORTS_DIR / "figures"
-ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
+ARTIFACTS_DIR = _ARTIFACTS / "synthetic"
 METRICS_PATH = REPORTS_DIR / "metrics.json"
 AUDIT_PATH = REPORTS_DIR / "data_audit.json"
 MODEL_PATH = ARTIFACTS_DIR / "model.joblib"
 
 # Name of the file as published on Kaggle (see docs/DATA_PROVENANCE.md).
 KAGGLE_FILENAME = "Smart_Farming_Crop_Yield_2024.csv"
-# File that existed in the original working folder (10x duplicated copy).
+KAGGLE_DATASET = "atharvasoundankar/smart-farming-sensor-data-for-yield-prediction"
+# SHA-256 of the official file as downloaded from Kaggle on 2026-11-12.
+KAGGLE_SHA256 = "49b1f2451c9c9f67dcfe1b5aafbbaa77f30385231a4baf7c13c2b2f92d77940d"
+# File that existed in the original working folder (10x duplicated, date-reformatted copy).
 LEGACY_FILENAME = "final_dataset_crop_yield.csv"
+# Each official record appeared this many times in that working copy.
+LEGACY_COPIES = 10
 
 RANDOM_STATE = 42
 TARGET = "yield_kg_per_hectare"

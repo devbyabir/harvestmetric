@@ -20,9 +20,11 @@ Smart_Crop_Yield_Analysis_and_Modeling.ipynb
 /2.jpg
 /3.jpg
 /4.jpg
-# Raw dataset: download it yourself (docs/DATA_PROVENANCE.md). Remove this line only
-# after verifying it and adding the Apache-2.0 attribution in NOTICE.
-data/raw/*.csv
-# Row-level outputs that reproduce dataset records
-reports/tables/test_predictions.csv
-reports/tables/test_worst_errors.csv
+# Raw downloads are re-creatable with the acquire scripts (docs/DATA_PROVENANCE.md):
+#   Part A: Kaggle file (Apache-2.0, third party) -> not redistributed here
+#   Part B: NASS / Census / NASA POWER raw files -> large; the processed panel is committed instead
+data/raw/**
+!data/raw/.gitkeep
+# Part A row-level outputs that reproduce third-party dataset records
+reports/synthetic/tables/test_predictions.csv
+reports/synthetic/tables/test_worst_errors.csv

@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
 
-from harvestmetric import config
-from harvestmetric.data import load_dataset, prepare, read_raw
-from harvestmetric.features import AT_SOWING, FEATURE_SETS, FORBIDDEN, FeatureSet, build_preprocessor
-from harvestmetric.split import LeakageError, assert_no_leakage, group_holdout_split
-from harvestmetric.train import cv_splits
+from harvestmetric.synthetic import config
+from harvestmetric.synthetic.data import load_dataset, prepare, read_raw
+from harvestmetric.synthetic.features import AT_SOWING, FEATURE_SETS, FORBIDDEN, FeatureSet, build_preprocessor
+from harvestmetric.synthetic.split import LeakageError, assert_no_leakage, group_holdout_split
+from harvestmetric.synthetic.train import cv_splits
 
 
 def test_duplicates_are_removed_on_load(csv_with_duplicates):

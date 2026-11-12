@@ -1,4 +1,4 @@
-"""Regression metrics, bootstrap intervals, and breakdowns by crop and yield band."""
+"""Shared regression metrics and bootstrap utilities (used by Part A and Part B)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from . import config
+DEFAULT_SEED = 42
 
 
 def regression_metrics(y_true, y_pred) -> dict[str, float]:
@@ -20,7 +20,7 @@ def regression_metrics(y_true, y_pred) -> dict[str, float]:
 
 
 def bootstrap_ci(y_true, y_pred, metric: str = "r2", n_boot: int = 2000,
-                 seed: int = config.RANDOM_STATE, alpha: float = 0.05) -> tuple[float, float]:
+                 seed: int = DEFAULT_SEED, alpha: float = 0.05) -> tuple[float, float]:
     """Percentile bootstrap interval for a metric over test farms."""
     y_true, y_pred = np.asarray(y_true, float), np.asarray(y_pred, float)
     rng = np.random.default_rng(seed)
@@ -34,7 +34,7 @@ def bootstrap_ci(y_true, y_pred, metric: str = "r2", n_boot: int = 2000,
 
 
 def paired_bootstrap_improvement(y_true, pred_model, pred_base, n_boot: int = 2000,
-                                 seed: int = config.RANDOM_STATE) -> dict[str, float]:
+                                 seed: int = DEFAULT_SEED) -> dict[str, float]:
     """Bootstrap the RMSE reduction of a model vs a baseline on the same farms."""
     y, a, b = (np.asarray(v, float) for v in (y_true, pred_model, pred_base))
     rng = np.random.default_rng(seed)
@@ -53,16 +53,10 @@ def paired_bootstrap_improvement(y_true, pred_model, pred_base, n_boot: int = 20
     }
 
 
-def breakdown(frame: pd.DataFrame, by: str, pred_col: str = "predicted",
-              true_col: str = config.TARGET) -> pd.DataFrame:
+def breakdown(frame: pd.DataFrame, by: str, true_col: str, pred_col: str = "predicted") -> pd.DataFrame:
     rows = []
     for level, g in frame.groupby(by, observed=True):
         m = regression_metrics(g[true_col], g[pred_col])
         m["bias"] = float((g[pred_col] - g[true_col]).mean())
         rows.append({by: level, **m})
     return pd.DataFrame(rows)
-
-
-def yield_band(y: pd.Series) -> pd.Series:
-    return pd.cut(y, bins=[2000, 3000, 4000, 5000, 6000.01], right=False,
-                  labels=["2000-3000", "3000-4000", "4000-5000", "5000-6000"])

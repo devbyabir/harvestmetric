@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from harvestmetric import config
+from harvestmetric.synthetic import config
 
 
 def make_frame(n_farms: int = 60, copies: int = 1, seed: int = 0) -> pd.DataFrame:

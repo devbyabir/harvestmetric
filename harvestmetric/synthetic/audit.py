@@ -89,9 +89,13 @@ def run_audit(path: str | Path | None = None) -> dict:
                       .agg(["count", "mean", "std", "min", "max"]).round(1))
 
     findings = [
-        f"Each of the {dup['unique_rows']} unique rows appears "
-        f"{'/'.join(map(str, dup['copies_per_unique_row']))} times; "
-        "a row-level split therefore places identical copies in train and test.",
+        (f"The official file has one row per farm ({dup['unique_rows']} farms). The working copy used by "
+         f"the original notebook repeated every record {config.LEGACY_COPIES} times (verified record-identical "
+         "to the official file), so its row-level split placed identical copies in train and test."
+         if dup["copies_per_unique_row"] == [1] else
+         f"Each of the {dup['unique_rows']} unique rows appears "
+         f"{'/'.join(map(str, dup['copies_per_unique_row']))} times; "
+         "a row-level split therefore places identical copies in train and test."),
         "Coordinates do not match region labels: every region spans the same box "
         "(lat ~10-35, lon ~70-90 E). US regions would need negative longitudes; "
         "East Africa lies at lon ~28-52 E.",
