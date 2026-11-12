@@ -66,7 +66,7 @@ into `data/raw/`, or set `HARVESTMETRIC_DATA=/path/to/file.csv`.
 |---|---|
 | Data audit → `reports/data_audit.json` | `python -m harvestmetric.audit` |
 | Train and evaluate → `reports/metrics.json`, `reports/tables/`, `artifacts/model.joblib` | `python -m harvestmetric.train` |
-| Run tests | `python -m pytest` |
+| Run tests (also run by GitHub Actions on every PR) | `python -m pytest` |
 | Launch the app | `streamlit run streamlit_app.py` |
 | Compare two copies of the dataset | `python -m harvestmetric.provenance A.csv B.csv` |
 

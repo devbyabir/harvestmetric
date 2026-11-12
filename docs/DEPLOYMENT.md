@@ -13,12 +13,12 @@
 
 ## Steps (need your accounts)
 
-1. Push the repository to GitHub (see the README, "Publish to GitHub").
+1. Review and merge the HarvestMetric pull request into `main` on https://github.com/devbyabir/harvestmetric.
 2. *Optional, enables the Explore and Scenarios tabs:* complete the steps in
    [DATA_PROVENANCE.md](DATA_PROVENANCE.md) "Steps to clear the data for publication"
    and commit `data/raw/Smart_Farming_Crop_Yield_2024.csv`.
 3. Go to https://share.streamlit.io, sign in with GitHub, and click **Create app**.
-4. Repository `devbyabir/harvestmetric-crop-yield`, branch `main`, main file
+4. Repository `devbyabir/harvestmetric`, branch `main`, main file
    `streamlit_app.py`. Under **Advanced settings**, choose **Python 3.12** (or 3.13).
 5. Deploy. When the app loads, check that every tab opens without an error. Then add the
    URL Streamlit gives you to the README and to [CV.md](CV.md).

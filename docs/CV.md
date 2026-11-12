@@ -25,7 +25,7 @@
 
 Use these once the repository is public. Add the live-demo link only after it is deployed.
 
-> **HarvestMetric: Crop Yield Analytics** (Python, scikit-learn, Streamlit) · *github.com/devbyabir/harvestmetric-crop-yield*
+> **HarvestMetric: Crop Yield Analytics** (Python, scikit-learn, Streamlit) · *github.com/devbyabir/harvestmetric*
 > - Audited an earlier crop-yield model and found that its R² of 1.00 came from data
 >   leakage: each of 500 records appeared 10 times, so a row-level split put copies in both train and test.
 > - Rebuilt the evaluation with farm-grouped nested cross-validation, an untouched 100-farm
