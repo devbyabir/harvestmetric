@@ -1,0 +1,4 @@
+# Optional: only needed to rebuild docs/report (python docs/report/build_report.py)
+-r requirements.txt
+matplotlib==3.11.2
+playwright==1.65.1

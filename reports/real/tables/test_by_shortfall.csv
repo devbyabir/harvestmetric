@@ -1,0 +1,3 @@
+shortfall,n,model_mae,model_rmse,model_bias,trend_mae,trend_rmse,trend_bias
+Within 15% of trend or above,1141,12.049,15.04,-2.744,12.824,15.578,-3.832
+Yield >15% below trend (outcome-defined),141,25.666,31.452,24.356,46.377,48.588,46.377

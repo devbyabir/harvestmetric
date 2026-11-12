@@ -1,0 +1,232 @@
+{
+  "generated_utc": "2026-11-12T12:43:53Z",
+  "versions": {
+    "scikit-learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "random_state": 42,
+  "task": {
+    "unit": "Iowa county x year",
+    "target": "NASS corn-for-grain yield, bu/acre",
+    "forecast_date": "1 August of the target year",
+    "information": "county's published yields up to year t-1; NASA POWER weather 1 Apr-31 Jul of year t"
+  },
+  "data": {
+    "train_years": [
+      1981,
+      2011
+    ],
+    "train_rows": 3069,
+    "test_years": [
+      2012,
+      2025
+    ],
+    "test_rows": 1282,
+    "counties": 99,
+    "cv_blocks": [
+      [
+        1997,
+        1999
+      ],
+      [
+        2000,
+        2002
+      ],
+      [
+        2003,
+        2005
+      ],
+      [
+        2006,
+        2008
+      ],
+      [
+        2009,
+        2011
+      ]
+    ]
+  },
+  "results": {
+    "Historical mean": {
+      "params": {},
+      "cv": {
+        "r2": -2.2397824844544716,
+        "mae": 37.08533265993266,
+        "rmse": 39.746765748084854,
+        "n": 1485
+      },
+      "test": {
+        "r2": -1.3064772789904198,
+        "mae": 38.18906232449297,
+        "rmse": 41.6388197908842,
+        "n": 1282
+      }
+    },
+    "Previous year": {
+      "params": {},
+      "cv": {
+        "r2": 0.22724480844783612,
+        "mae": 14.562895622895624,
+        "rmse": 19.411756478028707,
+        "n": 1485
+      },
+      "test": {
+        "r2": 0.14291257038499527,
+        "mae": 19.674102964118564,
+        "rmse": 25.382616245932955,
+        "n": 1282
+      }
+    },
+    "County trend": {
+      "params": {},
+      "cv": {
+        "r2": 0.27378792724062995,
+        "mae": 14.619729023569022,
+        "rmse": 18.81809258532522,
+        "n": 1485
+      },
+      "test": {
+        "r2": 0.36725320086258983,
+        "mae": 16.513919812792512,
+        "rmse": 21.80915301001493,
+        "n": 1282
+      }
+    },
+    "Trend + Ridge": {
+      "params": {
+        "alpha": 100.0
+      },
+      "cv": {
+        "r2": -0.11959049806517963,
+        "mae": 18.364722302955673,
+        "rmse": 23.36541347324459,
+        "n": 1485
+      },
+      "test": {
+        "r2": 0.5224041915896691,
+        "mae": 14.173614831186189,
+        "rmse": 18.947594174576125,
+        "n": 1282
+      }
+    },
+    "Trend + gradient boosting": {
+      "params": {
+        "learning_rate": 0.03,
+        "max_depth": 2,
+        "max_iter": 200,
+        "min_samples_leaf": 40
+      },
+      "cv": {
+        "r2": 0.21875939866209337,
+        "mae": 15.341822272549448,
+        "rmse": 19.518043047690156,
+        "n": 1485
+      },
+      "test": {
+        "r2": 0.5874542294027727,
+        "mae": 13.54647658509075,
+        "rmse": 17.61002167714014,
+        "n": 1282
+      }
+    }
+  },
+  "selection": {
+    "selected_model": "Trend + gradient boosting",
+    "best_cv_baseline": "County trend",
+    "strongest_test_baseline": "County trend",
+    "rule": "lowest expanding-window CV RMSE among learned models; test used once afterwards",
+    "rule_status": "acceptance rule written into this script before the test scores were computed (author's account); not an independently dated preregistration",
+    "vs_baselines_year_bootstrap": {
+      "Historical mean": {
+        "rmse_gain": 24.02879811374406,
+        "ci_low": 16.515623998473966,
+        "ci_high": 30.91850499970376,
+        "share_resamples_better": 1.0,
+        "years": 14
+      },
+      "Previous year": {
+        "rmse_gain": 7.772594568792815,
+        "ci_low": 4.334995764680737,
+        "ci_high": 11.315755417011273,
+        "share_resamples_better": 1.0,
+        "years": 14
+      },
+      "County trend": {
+        "rmse_gain": 4.199131332874792,
+        "ci_low": -0.0018521545897504815,
+        "ci_high": 9.46214891006579,
+        "share_resamples_better": 0.97475,
+        "years": 14
+      }
+    },
+    "prediction_supported": false,
+    "gate": "selected model beats best CV baseline in CV AND its test RMSE gain over the strongest test baseline has a year-cluster bootstrap 95% CI above 0"
+  },
+  "intervals": {
+    "method": "empirical intervals: +/- upper quantile of |expanding-window CV residuals| of the selected model (training years)",
+    "guarantee": "none: the same CV residuals were used for model selection, and residuals are correlated within years and shift over time, so split-conformal coverage does not apply; coverage is only checked empirically on the test years",
+    "calibration_rows": 1485,
+    "80%": {
+      "half_width_bu_ac": 24.77516645357295,
+      "test_coverage": 0.8619344773790951
+    },
+    "90%": {
+      "half_width_bu_ac": 32.74188665802936,
+      "test_coverage": 0.9407176287051482
+    }
+  },
+  "geographic_check": {
+    "design": "leave-one-NASS-district-out, training years 1981-2011 only; model family and hyperparameters re-selected inside each fold by expanding-window CV on the other eight districts",
+    "caveat": "same seasons on both sides: measures transfer across space, not skill on new seasons",
+    "model": {
+      "r2": 0.7218221570015507,
+      "mae": 12.554568932178764,
+      "rmse": 16.676947357545814,
+      "n": 3069
+    },
+    "trend": {
+      "r2": 0.47992071464763897,
+      "mae": 16.870230042359076,
+      "rmse": 22.80289924742176,
+      "n": 3069
+    },
+    "districts_where_model_beats_trend": 9
+  },
+  "weather_thresholds_from_train": {
+    "edd90": 119.64400000000005,
+    "dry10": 129.148,
+    "wet90": 369.0540000000003
+  },
+  "rolling_origin_refit": {
+    "years": [
+      2012,
+      2025
+    ],
+    "design": "refit every year on all earlier years, same hyperparameters",
+    "model": {
+      "r2": 0.5745427480244929,
+      "mae": 13.770633474261473,
+      "rmse": 17.883469828764696,
+      "n": 1282
+    },
+    "trend": {
+      "r2": 0.36725320086258983,
+      "mae": 16.513919812792512,
+      "rmse": 21.80915301001493,
+      "n": 1282
+    },
+    "vs_trend_year_bootstrap": {
+      "rmse_gain": 3.9256831812502355,
+      "ci_low": -0.3855937372610626,
+      "ci_high": 9.340005220281357,
+      "share_resamples_better": 0.936,
+      "years": 14
+    }
+  },
+  "forecast_2026": {
+    "produced": false,
+    "reason": "prediction gate not passed"
+  },
+  "runtime_seconds": 57.3
+}

@@ -1,0 +1,37 @@
+[project]
+name = "harvestmetric"
+version = "0.1.0"
+description = "Crop-yield analytics with leakage-safe evaluation and an interactive Streamlit demo"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+
+[tool.setuptools]
+packages = ["harvestmetric"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "NPY", "PD002"]
+ignore = ["E731"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E701", "E702"]
+"docs/report/build_report.py" = ["E501"]  # long lines are prose in the HTML template
+
+[tool.mypy]
+python_version = "3.12"
+files = ["harvestmetric", "streamlit_app.py"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = true

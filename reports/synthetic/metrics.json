@@ -1,0 +1,377 @@
+{
+  "generated_utc": "2026-11-12T10:15:06Z",
+  "versions": {
+    "scikit-learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "data": {
+    "source_file": "Smart_Farming_Crop_Yield_2024.csv",
+    "raw_rows": 500,
+    "unique_rows": 500,
+    "original_working_copy_rows": 5000,
+    "train_farms": 400,
+    "test_farms": 100,
+    "test_farm_ids": [
+      "FARM0010",
+      "FARM0014",
+      "FARM0017",
+      "FARM0025",
+      "FARM0026",
+      "FARM0029",
+      "FARM0030",
+      "FARM0031",
+      "FARM0034",
+      "FARM0041",
+      "FARM0044",
+      "FARM0046",
+      "FARM0047",
+      "FARM0053",
+      "FARM0054",
+      "FARM0059",
+      "FARM0073",
+      "FARM0082",
+      "FARM0085",
+      "FARM0095",
+      "FARM0099",
+      "FARM0104",
+      "FARM0110",
+      "FARM0112",
+      "FARM0115",
+      "FARM0116",
+      "FARM0120",
+      "FARM0123",
+      "FARM0133",
+      "FARM0134",
+      "FARM0137",
+      "FARM0169",
+      "FARM0172",
+      "FARM0173",
+      "FARM0175",
+      "FARM0178",
+      "FARM0180",
+      "FARM0187",
+      "FARM0191",
+      "FARM0196",
+      "FARM0204",
+      "FARM0207",
+      "FARM0210",
+      "FARM0212",
+      "FARM0219",
+      "FARM0221",
+      "FARM0228",
+      "FARM0236",
+      "FARM0240",
+      "FARM0243",
+      "FARM0245",
+      "FARM0246",
+      "FARM0272",
+      "FARM0276",
+      "FARM0280",
+      "FARM0283",
+      "FARM0289",
+      "FARM0292",
+      "FARM0294",
+      "FARM0303",
+      "FARM0318",
+      "FARM0320",
+      "FARM0323",
+      "FARM0327",
+      "FARM0331",
+      "FARM0339",
+      "FARM0344",
+      "FARM0346",
+      "FARM0352",
+      "FARM0353",
+      "FARM0354",
+      "FARM0355",
+      "FARM0362",
+      "FARM0378",
+      "FARM0379",
+      "FARM0382",
+      "FARM0393",
+      "FARM0398",
+      "FARM0411",
+      "FARM0414",
+      "FARM0417",
+      "FARM0419",
+      "FARM0420",
+      "FARM0431",
+      "FARM0432",
+      "FARM0433",
+      "FARM0439",
+      "FARM0441",
+      "FARM0447",
+      "FARM0449",
+      "FARM0454",
+      "FARM0456",
+      "FARM0467",
+      "FARM0468",
+      "FARM0477",
+      "FARM0481",
+      "FARM0489",
+      "FARM0495",
+      "FARM0498",
+      "FARM0500"
+    ]
+  },
+  "prediction_point": "Forecast made on the sowing date: site, crop and management choices only.",
+  "feature_sets": {
+    "at_sowing": {
+      "description": "Forecast made on the sowing date: site, crop and management choices only.",
+      "features": [
+        "region",
+        "crop_type",
+        "irrigation_type",
+        "fertilizer_type",
+        "soil_pH",
+        "latitude",
+        "longitude",
+        "sowing_month"
+      ]
+    },
+    "full_season": {
+      "description": "Diagnostic only (not a forecast): adds in-season sensor readings and season aggregates that are only complete at harvest.",
+      "features": [
+        "region",
+        "crop_type",
+        "irrigation_type",
+        "fertilizer_type",
+        "crop_disease_status",
+        "soil_pH",
+        "latitude",
+        "longitude",
+        "sowing_month",
+        "soil_moisture_%",
+        "temperature_C",
+        "rainfall_mm",
+        "humidity_%",
+        "sunlight_hours",
+        "pesticide_usage_ml",
+        "NDVI_index"
+      ]
+    }
+  },
+  "results": {
+    "at_sowing": {
+      "Mean baseline": {
+        "cv": {
+          "r2": -0.010024374907646072,
+          "mae": 1033.2363140624998,
+          "rmse": 1174.577194418444
+        },
+        "cv_r2_std": 0.011911792940275027,
+        "best_params": {},
+        "test": {
+          "r2": -0.000634209977561806,
+          "mae": 1012.6793584999999,
+          "rmse": 1174.7243725207395,
+          "n": 100
+        },
+        "seconds": 0.1
+      },
+      "Crop-mean baseline": {
+        "cv": {
+          "r2": -0.01692733952763654,
+          "mae": 1033.9523405068473,
+          "rmse": 1177.9838451642006
+        },
+        "cv_r2_std": 0.04179875626133102,
+        "best_params": {},
+        "test": {
+          "r2": -0.011364163302921115,
+          "mae": 1011.1825607408251,
+          "rmse": 1181.0059521911307,
+          "n": 100
+        },
+        "seconds": 0.1
+      },
+      "Ridge": {
+        "cv": {
+          "r2": -0.017974756405621982,
+          "mae": 1037.1580022157427,
+          "rmse": 1179.1312895919457
+        },
+        "cv_r2_std": 0.013599116975896254,
+        "best_params": {
+          "alpha": 1000.0
+        },
+        "test": {
+          "r2": -0.005920457670286261,
+          "mae": 1013.4401208639486,
+          "rmse": 1177.823259201773,
+          "n": 100
+        },
+        "seconds": 4.9
+      },
+      "Random forest": {
+        "cv": {
+          "r2": -0.06276411476935735,
+          "mae": 1055.2875212397173,
+          "rmse": 1204.3670944281716
+        },
+        "cv_r2_std": 0.03329817762675382,
+        "best_params": {
+          "max_depth": 3,
+          "min_samples_leaf": 20
+        },
+        "test": {
+          "r2": -0.030511823158653417,
+          "mae": 1020.734479597623,
+          "rmse": 1192.1332344672664,
+          "n": 100
+        },
+        "seconds": 8.0
+      },
+      "Gradient boosting": {
+        "cv": {
+          "r2": -0.057426565948499375,
+          "mae": 1053.0630722561068,
+          "rmse": 1201.1676937463706
+        },
+        "cv_r2_std": 0.03910981329457121,
+        "best_params": {
+          "l2_regularization": 1.0,
+          "learning_rate": 0.03,
+          "max_depth": 2
+        },
+        "test": {
+          "r2": -0.014885502378671589,
+          "mae": 1008.2698439444633,
+          "rmse": 1183.060162196126,
+          "n": 100
+        },
+        "seconds": 1.8
+      }
+    },
+    "full_season": {
+      "Mean baseline": {
+        "cv": {
+          "r2": -0.010024374907646072,
+          "mae": 1033.2363140624998,
+          "rmse": 1174.577194418444
+        },
+        "cv_r2_std": 0.011911792940275027,
+        "best_params": {},
+        "test": {
+          "r2": -0.000634209977561806,
+          "mae": 1012.6793584999999,
+          "rmse": 1174.7243725207395,
+          "n": 100
+        },
+        "seconds": 0.1
+      },
+      "Crop-mean baseline": {
+        "cv": {
+          "r2": -0.01692733952763654,
+          "mae": 1033.9523405068473,
+          "rmse": 1177.9838451642006
+        },
+        "cv_r2_std": 0.04179875626133102,
+        "best_params": {},
+        "test": {
+          "r2": -0.011364163302921115,
+          "mae": 1011.1825607408251,
+          "rmse": 1181.0059521911307,
+          "n": 100
+        },
+        "seconds": 0.1
+      },
+      "Ridge": {
+        "cv": {
+          "r2": -0.021227644456604678,
+          "mae": 1038.1693084413419,
+          "rmse": 1180.9633926800254
+        },
+        "cv_r2_std": 0.020685928046056217,
+        "best_params": {
+          "alpha": 1000.0
+        },
+        "test": {
+          "r2": -0.0034220730809011446,
+          "mae": 1018.6867000324925,
+          "rmse": 1176.3596817968164,
+          "n": 100
+        },
+        "seconds": 0.5
+      },
+      "Random forest": {
+        "cv": {
+          "r2": -0.0494539649463344,
+          "mae": 1045.9479404326157,
+          "rmse": 1196.7689012028545
+        },
+        "cv_r2_std": 0.049328945713878844,
+        "best_params": {
+          "max_depth": 3,
+          "min_samples_leaf": 20
+        },
+        "test": {
+          "r2": 0.00424101772455221,
+          "mae": 1012.9337131833564,
+          "rmse": 1171.8591688658687,
+          "n": 100
+        },
+        "seconds": 8.9
+      },
+      "Gradient boosting": {
+        "cv": {
+          "r2": -0.06420386839408257,
+          "mae": 1046.1824958900904,
+          "rmse": 1204.5444559977955
+        },
+        "cv_r2_std": 0.06627125452622835,
+        "best_params": {
+          "l2_regularization": 0.0,
+          "learning_rate": 0.03,
+          "max_depth": 2
+        },
+        "test": {
+          "r2": 0.017497614416115415,
+          "mae": 999.3855313170462,
+          "rmse": 1164.032518112393,
+          "n": 100
+        },
+        "seconds": 2.2
+      }
+    }
+  },
+  "selection": {
+    "task": "at_sowing",
+    "selected_model": "Ridge",
+    "best_baseline": "Mean baseline",
+    "rule": "lowest nested grouped-CV RMSE on training farms; test set used once afterwards",
+    "test_r2_95ci": [
+      -0.0595396955074791,
+      0.0006198965447764771
+    ],
+    "rmse_vs_baseline": {
+      "rmse_reduction_mean": -3.0826298463608763,
+      "ci_low": -7.4836987710759155,
+      "ci_high": 1.412266027332418,
+      "share_of_resamples_model_better": 0.102
+    },
+    "permutation_test": {
+      "cv_r2": -0.01601344703748069,
+      "null_r2_mean": -0.016579808271295064,
+      "null_r2_95pct": -0.0027574417341990854,
+      "p_value": 0.5522388059701493,
+      "n_permutations": 200
+    },
+    "prediction_supported": false,
+    "gate": "prediction shown only if permutation p < 0.05 AND test R\u00b2 95% CI > 0 AND RMSE reduction vs best baseline has 95% CI > 0",
+    "prediction_spread": {
+      "test_pred_std": 23.302595741713557,
+      "test_actual_std": 1174.3520386558027,
+      "pred_min": 3969.785849592337,
+      "pred_max": 4086.6311008914554
+    }
+  },
+  "legacy_split_demo": {
+    "rows": 5000,
+    "working_copy_recreated_from_official_file": true,
+    "model": "Random forest, full_season features",
+    "row_level_kfold_r2": 0.9999735566596357,
+    "grouped_by_farm_kfold_r2": -0.2061659771383229
+  }
+}

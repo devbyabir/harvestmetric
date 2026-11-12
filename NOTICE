@@ -1,0 +1,19 @@
+HarvestMetric — Crop Yield Analytics
+Copyright (c) 2026 Abir Ahmmed. Source code and documentation licensed under the MIT License (see LICENSE).
+The MIT License does not cover third-party data described below.
+
+Part B data (included in processed form in data/processed/ and reports/real/)
+----------------------------------------------------------------------------
+- USDA National Agricultural Statistics Service, Quick Stats (county corn-for-grain yield), CC0 1.0.
+  This product uses NASS data but is not endorsed or certified by NASS.
+- NASA POWER daily point data (API v2.10.3, retrieved 12 November 2026). These data were obtained from the
+  NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science
+  Program.
+- US Census Bureau, 2024 Gazetteer Files (county internal points), US federal government work.
+
+Part A data (NOT redistributed in this repository)
+-------------------------------------------------
+"Smart Farming Sensor Data for Yield Prediction" by Atharva Soundankar
+https://www.kaggle.com/datasets/atharvasoundankar/smart-farming-sensor-data-for-yield-prediction
+Apache License, Version 2.0. Described by its publisher as simulated (synthetic). Only aggregate results
+derived from it are included here.
