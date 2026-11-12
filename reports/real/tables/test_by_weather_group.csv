@@ -1,0 +1,5 @@
+weather_group,n,model_mae,model_rmse,model_bias,trend_mae,trend_rmse,trend_bias
+Dry summer (Jun-Jul rain below train P10),90,16.548,19.87,-2.675,17.396,21.857,9.486
+Extreme heat (Jun-Jul EDD>30°C above train P90),200,16.893,22.152,7.516,29.357,36.525,22.339
+Typical,910,12.879,16.652,-1.051,14.248,17.822,-2.93
+Wet summer (Jun-Jul rain above train P90),82,9.497,11.867,-0.028,9.369,11.545,-5.955
