@@ -1,0 +1,13 @@
+HarvestMetric — Crop Yield Analytics
+Copyright (c) 2026 Abir Ahmmed. Source code licensed under the MIT License (see LICENSE).
+
+The MIT License covers this repository's code and documentation only. It does not cover
+third-party data.
+
+Third-party data
+----------------
+"Smart Farming Sensor Data for Yield Prediction" by Atharva Soundankar
+https://www.kaggle.com/datasets/atharvasoundankar/smart-farming-sensor-data-for-yield-prediction
+Licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+The publisher describes the dataset as simulated. If data/raw/Smart_Farming_Crop_Yield_2024.csv
+is distributed with this repository, it is the unmodified file from the source above.

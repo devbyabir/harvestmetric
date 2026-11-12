@@ -1,0 +1,28 @@
+# Environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Local tooling
+.claude/
+
+# Regenerable model artifact (python -m harvestmetric.train)
+artifacts/
+
+# ---- Data and materials NOT cleared for publication (see docs/ATTRIBUTION.md) ----
+# Original working files of unconfirmed authorship / unverified provenance:
+final_dataset_crop_yield.csv
+Smart_Crop_Yield_Analysis_and_Modeling.ipynb
+/1.jpg
+/2.jpg
+/3.jpg
+/4.jpg
+# Raw dataset: download it yourself (docs/DATA_PROVENANCE.md). Remove this line only
+# after verifying it and adding the Apache-2.0 attribution in NOTICE.
+data/raw/*.csv
+# Row-level outputs that reproduce dataset records
+reports/tables/test_predictions.csv
+reports/tables/test_worst_errors.csv
