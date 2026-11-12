@@ -1,53 +1,60 @@
 # HarvestMetric — Crop Yield Analytics
 
-An audit and rebuild of a crop-yield modelling project. The original notebook reported
-**R² = 1.00**. With leakage removed, **no model predicts yield better than the
-average**. This repository shows why, using leakage-safe evaluation, and ships an
-interactive Streamlit analytics demo instead of a misleading predictor.
+**Leakage-safe evaluation of crop-yield models, in two parts.**
 
-> **Data notice.** The dataset is a public **synthetic** smart-farming dataset (Kaggle,
-> Apache-2.0; its publisher describes it as simulated). Nothing here describes real farms.
-> See [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md).
+- **Part A, a case study:** an internship notebook reported **R² ≈ 1.00**. That score came from duplicated
+  rows leaking across a row-level split of a *synthetic* dataset. Split correctly, the same model scores
+  **R² −0.21**, and no model beats the mean.
+- **Part B, real data:** on public USDA and NASA data, a 1 August forecast of **Iowa county corn yield** was
+  tested on untouched years 2012–2025. Weather-informed gradient boosting cut RMSE by **19%** against a
+  county-trend baseline (17.6 vs 21.8 bu/acre). But a year-level bootstrap and training-period CV did not
+  confirm the gain, so by a rule fixed in advance it is reported as **promising, not established**, and no
+  live forecasts are published.
+
+📄 **Technical report (4 pages):** [docs/report/HarvestMetric_technical_report.pdf](docs/report/HarvestMetric_technical_report.pdf)
+· 🧭 Interactive app: run locally (below); not deployed yet
 
 ![Overview](docs/screenshots/01_overview.png)
 
-## Key findings
+## Results at a glance
 
-| | R² | MAE (kg/ha) |
-|---|---:|---:|
-| Original notebook, row-level split on 10× duplicated rows | 1.000 (invalid) | ≈ 0 |
-| Same model type, split grouped by farm | −0.21 | — |
-| Mean baseline, held-out test farms | −0.001 | 1,013 |
-| Selected model (Ridge, at-sowing features), held-out test farms | −0.006 (95% CI −0.060 … +0.001) | 1,013 |
+| | Model | Strongest baseline | Verdict |
+|---|---|---|---|
+| **A** Synthetic, 100 held-out farms | Ridge, test R² −0.006 (95% CI −0.060 … +0.001) | Mean, R² −0.001 | No skill (permutation p = 0.55) |
+| **A** Same model, two splits | Row-level KFold R² **1.000** | Grouped by farm R² **−0.206** | Original score was leakage |
+| **B** Iowa corn, test years 2012–2025 | Trend + gradient boosting, RMSE **17.6** bu/ac | County trend, RMSE 21.8 | Gain +4.2, 95% CI [−0.00, +9.46]: not established |
+| **B** Geographic check (held-out districts, 1981–2011) | RMSE 16.8 | County trend, RMSE 22.8 | Better in 9 of 9 districts |
+| **B** 80% / 90% conformal intervals | Coverage 86% / 94% | | Drops to 68–69% (at 80%) in 2012 and 2020 |
 
-- **Duplicates:** 5,000 rows contain only 500 distinct farms, each repeated 10 times. A
-  row-level split puts identical copies in both train and test.
-- **No signal:** permutation test p = 0.55. Even with in-season data (NDVI, rainfall,
-  disease), no model beats the mean in cross-validation.
-- **Synthetic data:** coordinates contradict region labels ("Central USA" at 70-90° E),
-  numeric columns are independent uniform draws, and yield is ~Uniform(2000, 6000) for every crop.
-- **Failure mode:** predictions collapse to ≈ 4,000 kg/ha, missing low- and high-yield
-  farms by about 1,500 kg/ha.
+## What makes the evaluation trustworthy
+- **A defined forecast moment.** Part A predicts at sowing; Part B on 1 August. Every feature is computed
+  only from information available then, and tests enforce it.
+- **No leakage across splits.**
+  - Part A holds out whole farms.
+  - Part B trains on 1981–2011 and tests once on 2012–2025.
+  - Tuning uses expanding-window CV inside the training years.
+  - Geography is checked separately, by holding out whole districts.
+- **Strong baselines.** Historical mean, previous year and county trend.
+- **Honest uncertainty.**
+  - The bootstrap resamples whole *years*, since one season's weather hits every county.
+  - Conformal intervals are calibrated on time-ordered residuals.
+- **A pre-registered acceptance rule.** Predictions are shown only if a model beats the baselines in CV
+  *and* on the test years, with a confidence interval above zero. Neither part passed, and the app says so.
 
-Full details are in [docs/METHODOLOGY.md](docs/METHODOLOGY.md) and [docs/AUDIT.md](docs/AUDIT.md).
+## Data (all public; details in [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md))
+| Part | Source | Terms | In repo |
+|---|---|---|---|
+| A | *Smart Farming Sensor Data for Yield Prediction*, A. Soundankar (Kaggle). Synthetic; the original working copy was verified record-identical (×10 duplicated) | Apache-2.0 | No: aggregates only |
+| B | USDA NASS Quick Stats: Iowa county corn-for-grain yield (bu/acre) | CC0 1.0 | Processed panel |
+| B | NASA POWER daily point data v2.10.3 (T2M_MAX, T2M_MIN, PRECTOTCORR) | Citation required | Derived features |
+| B | US Census Bureau 2024 Gazetteer county points | US Gov. work | Coordinates |
 
-## What the project does
-
-- **Defines the prediction point.** The forecast is made at sowing, so only site, crop
-  and management choices are allowed as inputs. Post-harvest and in-season columns are
-  blocked in code and by tests.
-- **Evaluates without leakage.** Exact duplicates are removed. 100 farms are held out
-  untouched. Hyperparameters are tuned with nested, farm-grouped CV on the other 400.
-  Two baselines, Ridge, random forest and gradient boosting are compared.
-- **Judges significance.** A label-permutation test and bootstrap intervals feed a
-  *prediction gate*. The demo shows a prediction form only if the gate passes. Here it
-  does not.
-- **Interactive demo.** The Streamlit app has data exploration, the synthetic-data audit,
-  the corrected evaluation, scenario comparisons with bootstrap CIs, and limitations.
+*This product uses NASS data but is not endorsed or certified by NASS. These data were obtained from the
+NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science
+Program.*
 
 ## Quick start
-
-Requires Python 3.11 or newer (tested on 3.14.7, Windows 11).
+Requires Python ≥ 3.11 (developed on 3.14.7; CI runs 3.12 and 3.13).
 
 ```bash
 python -m venv .venv
@@ -58,68 +65,60 @@ python -m venv .venv
 pip install -r requirements-dev.txt
 ```
 
-Get the data: download `Smart_Farming_Crop_Yield_2024.csv` from
-[Kaggle](https://www.kaggle.com/datasets/atharvasoundankar/smart-farming-sensor-data-for-yield-prediction)
-into `data/raw/`, or set `HARVESTMETRIC_DATA=/path/to/file.csv`.
+```bash
+streamlit run streamlit_app.py
+```
 
-| Task | Command |
+The app needs nothing beyond the repository: Part B's processed panel and both parts' reports are committed.
+
+### Reproduce everything
+| Step | Command |
 |---|---|
-| Data audit → `reports/data_audit.json` | `python -m harvestmetric.audit` |
-| Train and evaluate → `reports/metrics.json`, `reports/tables/`, `artifacts/model.joblib` | `python -m harvestmetric.train` |
-| Run tests (also run by GitHub Actions on every PR) | `python -m pytest` |
-| Launch the app | `streamlit run streamlit_app.py` |
-| Compare two copies of the dataset | `python -m harvestmetric.provenance A.csv B.csv` |
+| Part A: download and verify the official file | `python -m harvestmetric.synthetic.acquire` |
+| Part A: audit and evaluation | `python -m harvestmetric.synthetic.audit` then `python -m harvestmetric.synthetic.train` |
+| Part B: download NASS, Census and NASA POWER | `python -m harvestmetric.real.acquire` |
+| Part B: build the panel and evaluate | `python -m harvestmetric.real.prepare` then `python -m harvestmetric.real.train` |
+| Lint, types, tests | `python -m ruff check .` · `python -m mypy` · `python -m pytest` |
+| Technical report | `pip install -r requirements-report.txt` then `python docs/report/build_report.py` |
 
-`requirements.txt` pins the runtime versions used here. `requirements-lock.txt` is the
-full frozen environment. Training takes about 40 s on a laptop.
+Versions, seeds, runtimes and data checksums: [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md).
 
-## Project layout
-
+## Repository layout
 ```
 harvestmetric/
-  config.py      paths, schema, allowed ranges and units
-  data.py        loading, de-duplication, schema & date validation
-  features.py    feature sets tied to the prediction point; shared preprocessor
-  split.py       farm-grouped hold-out split + leakage assertions
-  models.py      baselines, candidate models, tuning grids
-  evaluate.py    metrics, bootstrap CIs, crop / yield-band breakdowns
-  train.py       end-to-end protocol (python -m harvestmetric.train)
-  inference.py   validated inference with the saved pipeline, gated
-  audit.py       data-quality and synthetic-signal audit
-  analytics.py   group comparisons used by the app
-  provenance.py  record-level comparison of two dataset copies
-streamlit_app.py Streamlit entry point
-tests/           43 tests: leakage, validation, inference, app smoke tests
-reports/         generated metrics and audit (committed)
-docs/            audit, provenance, methodology, attribution, deployment, CV notes
+  synthetic/   Part A: acquire, audit, data, features, split, models, train, inference, provenance, simulator
+  real/        Part B: acquire, prepare, models, splits, conformal, train, forecast, analysis
+  metrics.py   shared metrics and bootstrap   ui.py   app pages   app_data.py   committed-file access
+streamlit_app.py, app_pages/   Streamlit entry point and pages
+tests/         synthetic/, real/, test_app.py: leakage, splits, joins, units, inference, every app page
+data/processed/  Part B panel + provenance manifest (raw downloads are git-ignored)
+reports/       synthetic/ and real/ metrics and tables
+docs/          provenance, Part A, Part B, model card, reproducibility, deployment, attribution, CV, interview sheet, report
 ```
 
+## Documentation
+- [Part A: leakage case study](docs/PART_A_CASE_STUDY.md) · [Starting-state audit](docs/AUDIT.md)
+- [Part B: methods and results](docs/PART_B_METHODS_RESULTS.md) · [Model card](docs/MODEL_CARD.md)
+- [Data provenance and rights](docs/DATA_PROVENANCE.md) · [Attribution](docs/ATTRIBUTION.md)
+- [Deployment](docs/DEPLOYMENT.md) · [Reproducibility](docs/REPRODUCIBILITY.md)
+
 ## Screenshots
-
-| Data audit | Model evaluation |
+| Leakage case study | Forecast evaluation |
 |---|---|
-| ![Audit](docs/screenshots/03_data_audit.png) | ![Evaluation](docs/screenshots/04_model_evaluation.png) |
-
-| Explore | Scenarios |
-|---|---|
-| ![Explore](docs/screenshots/02_explore.png) | ![Scenarios](docs/screenshots/05_scenarios.png) |
-
-## Live demo
-
-Not deployed yet. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+| ![](docs/screenshots/02_case_study.png) | ![](docs/screenshots/05_evaluation.png) |
+| **Explore Iowa data** | **Error analysis & backtest** |
+| ![](docs/screenshots/04_explore.png) | ![](docs/screenshots/06_errors.png) |
 
 ## Limitations
-
-- Synthetic data: findings describe this dataset, not agronomy.
-- The documentation does not say when soil moisture and NDVI were measured. Both are
-  treated as in-season.
-- The test set is 100 farms, so intervals are wide.
-- Pesticide usage is given per day, with no area basis.
+- Point weather per county from a coarse grid.
+- NASS values may have been revised since they were first published.
+- Counties are missing after 2014, not at random.
+- Only 14 test years.
+- One state and one crop.
+- Part A is synthetic and says nothing about real crops.
 
 ## Credits and licence
-
-- Code and documentation: MIT, © 2026 Abir Ahmmed ([LICENSE](LICENSE)).
-- Dataset: *Smart Farming Sensor Data for Yield Prediction* by Atharva Soundankar, Kaggle,
-  Apache-2.0. It is not redistributed in this repository ([NOTICE](NOTICE)).
-- This repository is a rebuild of an earlier notebook developed with a friend. That
-  notebook is not included. See [docs/ATTRIBUTION.md](docs/ATTRIBUTION.md).
+- **Code and docs:** MIT, © 2026 Abir Ahmmed ([LICENSE](LICENSE)). Third-party data terms: [NOTICE](NOTICE).
+- **Origins:** this is a rebuild of an exploratory notebook developed during an internship with a colleague.
+  That notebook is not included ([docs/ATTRIBUTION.md](docs/ATTRIBUTION.md)).
+- **AI assistance:** the rebuild was produced with an AI coding assistant, directed and reviewed by the author.

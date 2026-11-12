@@ -1,7 +1,13 @@
-# Methodology and results
+# Part A: synthetic-data leakage case study
 
-All numbers below come from `reports/metrics.json`, produced by
-`python -m harvestmetric.train` (scikit-learn 1.9.1, seed 42).
+All numbers below come from `reports/synthetic/metrics.json`, produced by
+`python -m harvestmetric.synthetic.acquire` followed by `python -m harvestmetric.synthetic.train`
+(scikit-learn 1.9.1, seed 42). The input is the official Kaggle file (500 records). The original
+notebook's 5,000-row working copy (every record ×10, verified record-identical) is recreated in code for
+the comparison in section 4, so the unpublished local CSV is never needed.
+
+> The data is **synthetic**. Nothing in Part A describes real farms. Real-data modelling is Part B
+> ([PART_B_METHODS_RESULTS.md](PART_B_METHODS_RESULTS.md)).
 
 ## 1. Prediction task
 
@@ -23,18 +29,18 @@ soil pH, latitude, longitude, sowing month.
 A second **full-season** feature set adds the in-season and season-aggregate columns.
 It is a *diagnostic upper bound*, not a forecast: if even this set has no signal, the
 data cannot support yield prediction. The forbidden-column list is enforced in code
-(`harvestmetric/features.py`) and by tests.
+(`harvestmetric/synthetic/features.py`) and by tests.
 
 ## 2. Evaluation protocol
 
-1. Drop exact duplicate rows (5,000 → 500, one row per farm). Sort by `farm_id`.
+1. Drop exact duplicate rows (one row per farm; the official file already has 500). Sort by `farm_id`.
 2. **Untouched test set:** 100 farms (20%), chosen with `StratifiedGroupKFold`
    (grouped by farm, stratified by crop). Used once, after model selection.
 3. **Tuning and selection on the 400 training farms only.** Each model's generalisation is
    estimated by nested CV: 5 outer farm-grouped folds, with grid-search tuning inside
    each outer training fold.
 4. **Models:** mean baseline, crop-mean baseline, Ridge, random forest, histogram
-   gradient boosting. Small grids (see `harvestmetric/models.py`).
+   gradient boosting. Small grids (see `harvestmetric/synthetic/models.py`).
 5. **Selection rule:** lowest nested-CV RMSE among learned models on the at-sowing task.
 6. **Is it better than chance?** A label-permutation test (200 permutations, grouped CV
    on training farms), a bootstrap 95% CI for test R², and a paired bootstrap of the
@@ -101,7 +107,7 @@ forecasting tool would exist to flag.
 
 Same model type (random forest, full-season features), same 5,000-row file, two splits:
 
-| Split | Mean 5-fold R² |
+| Split (5,000-row working copy) | Mean 5-fold R² |
 |---|---:|
 | Row-level `KFold` (as in the original notebook) | **0.99997** |
 | Grouped by farm | **−0.206** |

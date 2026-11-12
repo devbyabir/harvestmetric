@@ -48,7 +48,9 @@ passwords) and personal data found none. The word "hospital" appears in none of 
 ## Dataset: problems
 
 See [DATA_PROVENANCE.md](DATA_PROVENANCE.md) for source and rights, and
-`reports/data_audit.json` for the computed checks.
+`reports/synthetic/data_audit.json` for the computed checks. This file records the state on the first day
+(12 Nov 2026). Later findings, such as record-level verification against the official Kaggle file, are in
+DATA_PROVENANCE.md.
 
 - 500 distinct records, each repeated exactly 10 times in the same order (rows
   1-500 = rows 501-1000 = …).

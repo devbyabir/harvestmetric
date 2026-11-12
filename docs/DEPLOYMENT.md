@@ -1,28 +1,29 @@
 # Deploying to Streamlit Community Cloud
 
-**Status:** not deployed. No live URL exists yet.
+**Status: not deployed.** No live URL exists. Deploying needs your Streamlit account and your decision, and
+should happen only after you have reviewed and merged the pull request.
 
-## What is already set up
+## Already in place
+- **Entry point:** `streamlit_app.py` at the repository root, with pages in `app_pages/` and their code in
+  `harvestmetric/ui.py`.
+- **Dependencies:** `requirements.txt`, pinned; needs Python ≥ 3.11.
+- **Settings:** `.streamlit/config.toml` (theme, headless).
+- **Data:** everything the app shows is committed. Part B is the public-domain panel
+  (`data/processed/iowa_corn_county_panel.csv`) plus `reports/real/`. Part A uses `reports/synthetic/` and a
+  simulator that generates its own data. **No local or git-ignored file is needed.**
+- **Tests:** the app tests run every page with the committed data, with a small fixture and with no data.
+  CI runs them in a clean environment.
 
-- Entry point: `streamlit_app.py` at the repository root
-- Dependencies: `requirements.txt`, pinned versions; needs Python ≥ 3.11
-- Theme and server settings: `.streamlit/config.toml`
-- Evaluation and audit reports are committed in `reports/`, so the Overview, Data audit,
-  Model evaluation and Limitations tabs work without the raw CSV.
-- Smoke test: `tests/test_app.py` runs the app with and without the dataset.
-
-## Steps (need your accounts)
-
-1. Review and merge the HarvestMetric pull request into `main` on https://github.com/devbyabir/harvestmetric.
-2. *Optional, enables the Explore and Scenarios tabs:* complete the steps in
-   [DATA_PROVENANCE.md](DATA_PROVENANCE.md) "Steps to clear the data for publication"
-   and commit `data/raw/Smart_Farming_Crop_Yield_2024.csv`.
+## Steps (your accounts)
+1. Review and merge the pull request into `main` on https://github.com/devbyabir/harvestmetric.
+2. The repository is private. Streamlit Community Cloud can deploy private repositories once you authorise
+   its GitHub app for them; making the repository public is a separate decision.
 3. Go to https://share.streamlit.io, sign in with GitHub, and click **Create app**.
-4. Repository `devbyabir/harvestmetric`, branch `main`, main file
-   `streamlit_app.py`. Under **Advanced settings**, choose **Python 3.12** (or 3.13).
-5. Deploy. When the app loads, check that every tab opens without an error. Then add the
-   URL Streamlit gives you to the README and to [CV.md](CV.md).
+4. Repository `devbyabir/harvestmetric`, branch `main`, main file `streamlit_app.py`. Under **Advanced
+   settings**, choose **Python 3.12** (or 3.13).
+5. Deploy. Open every page in the sidebar and check that none shows an error.
+6. Then add the real URL to the README and to [CV.md](CV.md).
 
-Without step 2, the deployed app shows a notice that the raw dataset is absent and
-disables the two data-driven tabs. The test-set scatter plot also stays hidden, because
-`reports/tables/test_predictions.csv` is not committed.
+## Expected behaviour
+- The forecast page is **not** shown, because Part B's gate did not pass.
+- The Part B pages show evaluation results and a backtest viewer, clearly labelled as not live forecasts.
