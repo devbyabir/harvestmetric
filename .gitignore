@@ -5,11 +5,17 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ipynb_checkpoints/
+.mypy_cache/
+.ruff_cache/
+# Package build output
+build/
+dist/
+*.egg-info/
 
 # Local tooling
 .claude/
 
-# Regenerable model artifact (python -m harvestmetric.train)
+# Regenerable model artifacts (python -m harvestmetric.synthetic.train / harvestmetric.real.train)
 artifacts/
 
 # ---- Data and materials NOT cleared for publication (see docs/ATTRIBUTION.md) ----

@@ -1,13 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "harvestmetric"
-version = "0.1.0"
+version = "1.0.0"
 description = "Crop-yield analytics with leakage-safe evaluation and an interactive Streamlit demo"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
+authors = [{ name = "Abir Ahmmed" }]
+dynamic = ["dependencies"]
 
-[tool.setuptools]
-packages = ["harvestmetric"]
+[project.urls]
+Homepage = "https://github.com/devbyabir/harvestmetric"
+Demo = "https://harvestmetric.streamlit.app"
+
+[tool.setuptools.packages.find]
+include = ["harvestmetric*"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

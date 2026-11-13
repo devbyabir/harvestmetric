@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+from functools import lru_cache
 from pathlib import Path
 
 import pandas as pd
@@ -25,18 +26,30 @@ def panel_path() -> Path:
     return Path(os.environ.get("HARVESTMETRIC_PANEL", DATA_DIR / "processed" / "iowa_corn_county_panel.csv"))
 
 
-def read_json(part: str, name: str) -> dict | None:
-    path = reports_root() / part / name
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
-
-
-def read_table(part: str, name: str) -> pd.DataFrame | None:
-    path = reports_root() / part / "tables" / name
-    if not path.exists():
-        return None
+# Committed files are read once per (path, modification time) and then served from
+# memory, so a page rerun does not re-parse the 680 KB panel. Callers get copies.
+@lru_cache(maxsize=64)
+def _csv(path: str, mtime_ns: int) -> pd.DataFrame:
     return pd.read_csv(path, dtype={"fips": str, "district_code": str})
 
 
+@lru_cache(maxsize=16)
+def _json(path: str, mtime_ns: int) -> dict:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _cached_csv(path: Path) -> pd.DataFrame | None:
+    return _csv(str(path), path.stat().st_mtime_ns).copy() if path.exists() else None
+
+
+def read_json(part: str, name: str) -> dict | None:
+    path = reports_root() / part / name
+    return json.loads(json.dumps(_json(str(path), path.stat().st_mtime_ns))) if path.exists() else None
+
+
+def read_table(part: str, name: str) -> pd.DataFrame | None:
+    return _cached_csv(reports_root() / part / "tables" / name)
+
+
 def read_panel() -> pd.DataFrame | None:
-    path = panel_path()
-    return pd.read_csv(path, dtype={"fips": str, "district_code": str}) if path.exists() else None
+    return _cached_csv(panel_path())
