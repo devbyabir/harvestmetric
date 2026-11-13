@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software or its evaluation protocol, please cite it as below."
+title: "HarvestMetric: leakage-safe evaluation of crop-yield models"
+abstract: >-
+  A data-leakage case study on a synthetic crop-yield dataset, and a time-separated evaluation of a
+  1 August forecast of Iowa county corn yield built on USDA NASS county yields and NASA POWER weather,
+  with strong baselines, year-level uncertainty and a geographic check.
+type: software
+authors:
+  - family-names: Ahmmed
+    given-names: Abir
+repository-code: "https://github.com/devbyabir/harvestmetric"
+url: "https://harvestmetric.streamlit.app"
+license: MIT
+version: 1.0.0
+date-released: "2026-11-14"
+keywords:
+  - machine learning
+  - crop yield
+  - forecasting
+  - data leakage
+  - model evaluation
