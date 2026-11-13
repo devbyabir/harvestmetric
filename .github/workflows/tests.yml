@@ -23,6 +23,14 @@ jobs:
           cache: pip
       - name: Install dependencies (clean environment)
         run: pip install -r requirements-dev.txt
+      - name: Audit dependencies for known vulnerabilities
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt -r requirements-dev.txt --progress-spinner off
+      - name: Build the package and check every subpackage is included
+        run: |
+          pip wheel . --no-deps -w dist -q
+          python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('dist/*.whl')[0]).namelist(); assert all(f'harvestmetric/{p}/__init__.py' in n for p in ('synthetic', 'real')), n; print(len(n), 'files')"
       - name: Lint (ruff)
         run: python -m ruff check .
       - name: Type check (mypy)
